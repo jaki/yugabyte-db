@@ -884,6 +884,7 @@ stmt :
 			| CreateUserStmt
 			| CreatedbStmt
 			| DeallocateStmt
+			| DefineStmt
 			| DeleteStmt
 			| DiscardStmt
 			| DropStmt
@@ -977,7 +978,6 @@ stmt :
 			| CreateEventTrigStmt { parser_ybc_signal_unsupported(@1, "This statement", 1156); }
 			| CreateUserMappingStmt { parser_ybc_not_support(@1, "This statement"); }
 			| DeclareCursorStmt { parser_ybc_not_support(@1, "This statement"); }
-			| DefineStmt { parser_ybc_not_support(@1, "This statement"); }
 			| DropAssertStmt { parser_ybc_not_support(@1, "This statement"); }
 			| DropCastStmt { parser_ybc_not_support(@1, "This statement"); }
 			| DropOpClassStmt { parser_ybc_not_support(@1, "This statement"); }
@@ -6116,7 +6116,6 @@ DefineStmt:
 				}
 			| CREATE TYPE_P any_name definition
 				{
-					parser_ybc_signal_unsupported(@1, "CREATE TYPE", 1152);
 					DefineStmt *n = makeNode(DefineStmt);
 					n->kind = OBJECT_TYPE;
 					n->oldstyle = false;
@@ -6127,7 +6126,6 @@ DefineStmt:
 				}
 			| CREATE TYPE_P any_name
 				{
-					parser_ybc_signal_unsupported(@1, "CREATE TYPE", 1152);
 					/* Shell type (identified by lack of definition) */
 					DefineStmt *n = makeNode(DefineStmt);
 					n->kind = OBJECT_TYPE;
@@ -6139,7 +6137,6 @@ DefineStmt:
 				}
 			| CREATE TYPE_P any_name AS '(' OptTableFuncElementList ')'
 				{
-					parser_ybc_signal_unsupported(@1, "CREATE TYPE", 1152);
 					CompositeTypeStmt *n = makeNode(CompositeTypeStmt);
 
 					/* can't use qualified_name, sigh */
@@ -6149,7 +6146,6 @@ DefineStmt:
 				}
 			| CREATE TYPE_P any_name AS ENUM_P '(' opt_enum_val_list ')'
 				{
-					parser_ybc_signal_unsupported(@1, "CREATE TYPE", 1152);
 					CreateEnumStmt *n = makeNode(CreateEnumStmt);
 					n->typeName = $3;
 					n->vals = $7;
@@ -6157,7 +6153,6 @@ DefineStmt:
 				}
 			| CREATE TYPE_P any_name AS RANGE definition
 				{
-					parser_ybc_signal_unsupported(@1, "CREATE TYPE", 1152);
 					CreateRangeStmt *n = makeNode(CreateRangeStmt);
 					n->typeName = $3;
 					n->params	= $6;
@@ -6699,7 +6694,6 @@ DropStmt:	DROP drop_type_any_name IF_P EXISTS any_name_list opt_drop_behavior
 				}
 			| DROP TYPE_P type_name_list opt_drop_behavior
 				{
-					parser_ybc_signal_unsupported(@1, "DROP TYPE", 1152);
 					DropStmt *n = makeNode(DropStmt);
 					n->removeType = OBJECT_TYPE;
 					n->missing_ok = false;
@@ -6710,7 +6704,6 @@ DropStmt:	DROP drop_type_any_name IF_P EXISTS any_name_list opt_drop_behavior
 				}
 			| DROP TYPE_P IF_P EXISTS type_name_list opt_drop_behavior
 				{
-					parser_ybc_signal_unsupported(@1, "DROP TYPE", 1152);
 					DropStmt *n = makeNode(DropStmt);
 					n->removeType = OBJECT_TYPE;
 					n->missing_ok = true;
