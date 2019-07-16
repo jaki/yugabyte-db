@@ -134,7 +134,7 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 
 		if (basetp_oid == InvalidOid)
 		{
-			YB_REPORT_TYPE_NOT_SUPPORTED(type_id);
+			basetp_oid = BYTEAARRAYOID;
 		}
 		return YBCDataTypeFromOidMod(InvalidAttrNumber, basetp_oid);
 	}
