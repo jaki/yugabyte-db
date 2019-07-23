@@ -132,9 +132,27 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 		Oid basetp_oid = tp->typbasetype;
 		ReleaseSysCache(type);
 
-		if (basetp_oid == InvalidOid)
-		{
-			basetp_oid = BYTEAARRAYOID;
+		switch (tp->typtype) {
+			case TYPTYPE_BASE:
+				if (tp->typlen < 0) {
+					/* Variable length base type */
+					basetp_oid = BYTEAARRAYOID;
+				} else {
+					/* fixed length base type */
+					basetp_oid = OIDOID;
+				}
+				break;
+			case TYPTYPE_COMPOSITE:
+			case TYPTYPE_RANGE:
+				basetp_oid = BYTEAARRAYOID;
+				break;
+			case TYPTYPE_ENUM:
+				basetp_oid = OIDOID;
+				break;
+			case TYPTYPE_DOMAIN:
+			default:
+				YB_REPORT_TYPE_NOT_SUPPORTED(type_id);
+				break;
 		}
 		return YBCDataTypeFromOidMod(InvalidAttrNumber, basetp_oid);
 	}
