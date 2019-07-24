@@ -132,6 +132,10 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 		Oid basetp_oid = tp->typbasetype;
 		ReleaseSysCache(type);
 
+		/*
+		 * TODO(jj-kim): change BYTEAARRAYOID to BYTEAOID when index on user-defined types is
+		 * supported
+		 */
 		switch (tp->typtype) {
 			case TYPTYPE_BASE:
 				if (tp->typlen < 0) {
