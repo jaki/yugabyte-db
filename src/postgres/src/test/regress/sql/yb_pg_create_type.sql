@@ -131,10 +131,12 @@ CREATE FUNCTION base_fn_in(cstring) RETURNS opaque AS 'boolin'
 CREATE FUNCTION base_fn_out(opaque) RETURNS opaque AS 'boolout'
     LANGUAGE internal IMMUTABLE STRICT;
 CREATE TYPE base_type(INPUT = base_fn_in, OUTPUT = base_fn_out);
+\set VERBOSITY terse \\ -- suppress cascade details
 DROP FUNCTION base_fn_in(cstring); -- error
 DROP FUNCTION base_fn_out(opaque); -- error
 DROP TYPE base_type; -- error
 DROP TYPE base_type CASCADE;
+\set VERBOSITY default
 
 -- Check usage of typmod with a user-defined type
 -- (we have borrowed numeric's typmod functions)

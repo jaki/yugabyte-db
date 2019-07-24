@@ -9,5 +9,3 @@ test: yb_point
 test: yb_arrays
 test: yb_int2_array
 test: yb_int4_array
-# TODO(neil) CREATE TYPE is not yet supported, so ENUM is not supported.
-# test: yb_pg_enum

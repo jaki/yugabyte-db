@@ -1,0 +1,12 @@
+# src/test/regress/yb_pg_type_udt_serial_schedule
+#
+####################################################################################################
+# Postgres Testsuites: Porting from PostgreSQL original tests.
+# This suite includes all tests on user defined types that are enabled for YugaByte.
+####################################################################################################
+# Dependency for yb_pg_create_type
+test: yb_pg_create_function_1
+
+test: yb_pg_create_type
+test: yb_pg_enum
+test: yb_pg_rangetypes
