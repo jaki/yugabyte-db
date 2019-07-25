@@ -150,10 +150,11 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 			case TYPTYPE_RANGE:
 				basetp_oid = BYTEAARRAYOID;
 				break;
+			case TYPTYPE_DOMAIN:
+				break;
 			case TYPTYPE_ENUM:
 				basetp_oid = OIDOID;
 				break;
-			case TYPTYPE_DOMAIN:
 			default:
 				YB_REPORT_TYPE_NOT_SUPPORTED(type_id);
 				break;
