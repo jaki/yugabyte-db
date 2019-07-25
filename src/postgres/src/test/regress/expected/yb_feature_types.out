@@ -42,14 +42,7 @@ CREATE TABLE feature_tab_bool (feature_col BOOLEAN);
 --
 -- Enumerated Types
 CREATE TYPE feature_enum AS ENUM('one', 'two', 'three');
-ERROR:  CREATE TYPE not supported yet
-LINE 1: CREATE TYPE feature_enum AS ENUM('one', 'two', 'three');
-        ^
-HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1152. Click '+' on the description to raise its priority
 CREATE TABLE feature_tab_enum (feature_col feature_enum);
-ERROR:  type "feature_enum" does not exist
-LINE 1: CREATE TABLE feature_tab_enum (feature_col feature_enum);
-                                                   ^
 --
 -- Geometric Types
 CREATE TABLE feature_tab_point (feature_col POINT);
@@ -85,12 +78,8 @@ CREATE TABLE feature_tab_array_int (feature_col INTEGER[]);
 CREATE TABLE feature_tab_array_text (feature_col TEXT[]);
 --
 -- Composite Types
-CREATE TYPE feature_struct AS(id INTEGER, name TEXT)
+CREATE TYPE feature_struct AS(id INTEGER, name TEXT);
 CREATE TABLE feature_tab_struct (feature_col feature_struct);
-ERROR:  CREATE TYPE not supported yet
-LINE 1: CREATE TYPE feature_struct AS(id INTEGER, name TEXT)
-        ^
-HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1152. Click '+' on the description to raise its priority
 --
 -- JSON Types
 -- Need Test

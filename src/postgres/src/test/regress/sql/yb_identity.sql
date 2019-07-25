@@ -240,9 +240,9 @@ SELECT * FROM itestv11 ORDER BY a;
 
 -- typed tables (currently not supported)
 
--- CREATE TYPE itest_type AS (f1 integer, f2 text, f3 bigint);
--- CREATE TABLE itest12 OF itest_type (f1 WITH OPTIONS GENERATED ALWAYS AS IDENTITY); -- error
--- DROP TYPE itest_type CASCADE;
+CREATE TYPE itest_type AS (f1 integer, f2 text, f3 bigint);
+CREATE TABLE itest12 OF itest_type (f1 WITH OPTIONS GENERATED ALWAYS AS IDENTITY); -- error
+DROP TYPE itest_type CASCADE;
 
 
 -- table partitions (currently not supported)

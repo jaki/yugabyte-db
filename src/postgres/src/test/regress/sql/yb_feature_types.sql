@@ -78,7 +78,7 @@ CREATE TABLE feature_tab_array_int (feature_col INTEGER[]);
 CREATE TABLE feature_tab_array_text (feature_col TEXT[]);
 --
 -- Composite Types
-CREATE TYPE feature_struct AS(id INTEGER, name TEXT)
+CREATE TYPE feature_struct AS(id INTEGER, name TEXT);
 CREATE TABLE feature_tab_struct (feature_col feature_struct);
 --
 -- JSON Types
