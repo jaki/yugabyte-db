@@ -2533,10 +2533,6 @@ drop function missing_return_expr();
 --
 create table eifoo (i integer, y integer);
 create type eitype as (i integer, y integer);
-ERROR:  CREATE TYPE not supported yet
-LINE 1: create type eitype as (i integer, y integer);
-        ^
-HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1152. Click '+' on the description to raise its priority
 create or replace function execute_into_test(varchar) returns record as $$
 declare
     _r record;
@@ -2556,39 +2552,17 @@ begin
     execute 'select 1,2' into _v;
     return _v;
 end; $$ language plpgsql;
-ERROR:  type "eitype" does not exist
-LINE 5:     _v eitype;
-               ^
 select execute_into_test('eifoo');
-ERROR:  type "eitype" does not exist
-LINE 5:     _v eitype;
-               ^
-QUERY:
-declare
-    _r record;
-    _rt eifoo%rowtype;
-    _v eitype;
-    i int;
-    j int;
-    k int;
-begin
-    execute 'insert into '||$1||' values(10,15)';
-    execute 'select (row).* from (select row(10,1)::eifoo) s' into _r;
-    raise notice '% %', _r.i, _r.y;
-    execute 'select * from '||$1||' limit 1' into _rt;
-    raise notice '% %', _rt.i, _rt.y;
-    execute 'select *, 20 from '||$1||' limit 1' into i, j, k;
-    raise notice '% % %', i, j, k;
-    execute 'select 1,2' into _v;
-    return _v;
-end;
-CONTEXT:  compilation of PL/pgSQL function "execute_into_test" near line 5
+NOTICE:  10 1
+NOTICE:  10 15
+NOTICE:  10 15 20
+ execute_into_test 
+-------------------
+ (1,2)
+(1 row)
+
 drop table eifoo cascade;
 drop type eitype cascade;
-ERROR:  DROP TYPE not supported yet
-LINE 1: drop type eitype cascade;
-        ^
-HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1152. Click '+' on the description to raise its priority
 --
 -- SQLSTATE and SQLERRM test
 --
@@ -3225,22 +3199,26 @@ select * from ret_query1();
 (13 rows)
 
 create type record_type as (x text, y int, z boolean);
-ERROR:  CREATE TYPE not supported yet
-LINE 1: create type record_type as (x text, y int, z boolean);
-        ^
-HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1152. Click '+' on the description to raise its priority
 create or replace function ret_query2(lim int) returns setof record_type as $$
 begin
     return query select md5(s.x::text), s.x, s.x > 0
                  from generate_series(-8, lim) s (x) where s.x % 2 = 0;
 end;
 $$ language plpgsql;
-ERROR:  type "record_type" does not exist
 select * from ret_query2(8);
-ERROR:  function ret_query2(integer) does not exist
-LINE 1: select * from ret_query2(8);
-                      ^
-HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+                x                 | y  | z
+----------------------------------+----+---
+ a8d2ec85eaf98407310b72eb73dda247 | -8 | f
+ 596a3d04481816330f07e4f97510c28f | -6 | f
+ 0267aaf632e87a63288a08331f22c7c3 | -4 | f
+ 5d7b9adcbe1c629ec722529dd12e5129 | -2 | f
+ cfcd208495d565ef66e7dff9f98764da |  0 | f
+ c81e728d9d4c2f636f067f89cc14862c |  2 | t
+ a87ff679a2f3e71d9181a67b7542122c |  4 | t
+ 1679091c5a880faf6fb5e6087eb1b2dc |  6 | t
+ c9f0f895fb98ab9159f51fd0297e236d |  8 | t
+(9 rows)
+
 -- test EXECUTE USING
 create function exc_using(int, text) returns int as $$
 declare i int;
@@ -3509,10 +3487,6 @@ drop table tabwithcols;
 -- Tests for composite-type results
 --
 create type compostype as (x int, y varchar);
-ERROR:  CREATE TYPE not supported yet
-LINE 1: create type compostype as (x int, y varchar);
-        ^
-HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1152. Click '+' on the description to raise its priority
 -- test: use of variable of composite type in return statement
 create or replace function compos() returns compostype as $$
 declare
@@ -3522,12 +3496,12 @@ begin
   return v;
 end;
 $$ language plpgsql;
-ERROR:  type "compostype" does not exist
 select compos();
-ERROR:  function compos() does not exist
-LINE 1: select compos();
-               ^
-HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+  compos   
+-----------
+ (1,hello)
+(1 row)
+
 -- test: use of variable of record type in return statement
 create or replace function compos() returns compostype as $$
 declare
@@ -3537,50 +3511,47 @@ begin
   return v;
 end;
 $$ language plpgsql;
-ERROR:  type "compostype" does not exist
 select compos();
-ERROR:  function compos() does not exist
-LINE 1: select compos();
-               ^
-HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+  compos
+-----------
+ (1,hello)
+(1 row)
+
 -- test: use of row expr in return statement
 create or replace function compos() returns compostype as $$
 begin
   return (1, 'hello'::varchar);
 end;
 $$ language plpgsql;
-ERROR:  type "compostype" does not exist
 select compos();
-ERROR:  function compos() does not exist
-LINE 1: select compos();
-               ^
-HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+  compos
+-----------
+ (1,hello)
+(1 row)
+
 -- this does not work currently (no implicit casting)
 create or replace function compos() returns compostype as $$
 begin
   return (1, 'hello');
 end;
 $$ language plpgsql;
-ERROR:  type "compostype" does not exist
 select compos();
-ERROR:  function compos() does not exist
-LINE 1: select compos();
-               ^
-HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+ERROR:  returned record type does not match expected record type
+DETAIL:  Returned type unknown does not match expected type character varying in column 2.
+CONTEXT:  PL/pgSQL function compos() while casting return value to function's return type
 -- ... but this does
 create or replace function compos() returns compostype as $$
 begin
   return (1, 'hello')::compostype;
 end;
 $$ language plpgsql;
-ERROR:  type "compostype" does not exist
 select compos();
-ERROR:  function compos() does not exist
-LINE 1: select compos();
-               ^
-HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+  compos
+-----------
+ (1,hello)
+(1 row)
+
 drop function compos();
-ERROR:  function compos() does not exist
 -- test: return a row expr as record.
 create or replace function composrec() returns record as $$
 declare
@@ -3612,26 +3583,26 @@ begin
   return next (2, 'goodbye')::compostype;
 end;
 $$ language plpgsql;
-ERROR:  type "compostype" does not exist
 select * from compos();
-ERROR:  function compos() does not exist
-LINE 1: select * from compos();
-                      ^
-HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+ x |    y
+---+---------
+ 1 | hello
+ 1 | hello
+ 1 | hello
+   |
+ 2 | goodbye
+(5 rows)
+
 drop function compos();
-ERROR:  function compos() does not exist
 -- test: use invalid expr in return statement.
 create or replace function compos() returns compostype as $$
 begin
   return 1 + 1;
 end;
 $$ language plpgsql;
-ERROR:  type "compostype" does not exist
 select compos();
-ERROR:  function compos() does not exist
-LINE 1: select compos();
-               ^
-HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+ERROR:  cannot return non-composite value from function returning composite type
+CONTEXT:  PL/pgSQL function compos() line 3 at RETURN
 -- RETURN variable is a different code path ...
 create or replace function compos() returns compostype as $$
 declare x int := 42;
@@ -3639,14 +3610,10 @@ begin
   return x;
 end;
 $$ language plpgsql;
-ERROR:  type "compostype" does not exist
 select * from compos();
-ERROR:  function compos() does not exist
-LINE 1: select * from compos();
-                      ^
-HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+ERROR:  cannot return non-composite value from function returning composite type
+CONTEXT:  PL/pgSQL function compos() line 4 at RETURN
 drop function compos();
-ERROR:  function compos() does not exist
 -- test: invalid use of composite variable in scalar-returning function
 create or replace function compos() returns int as $$
 declare
@@ -3656,22 +3623,9 @@ begin
   return v;
 end;
 $$ language plpgsql;
-ERROR:  type "compostype" does not exist
-LINE 3:   v compostype;
-            ^
 select compos();
-ERROR:  type "compostype" does not exist
-LINE 3:   v compostype;
-            ^
-QUERY:
-declare
-  v compostype;
-begin
-  v := (1, 'hello');
-  return v;
-end;
-
-CONTEXT:  compilation of PL/pgSQL function "compos" near line 3
+ERROR:  invalid input syntax for integer: "(1,hello)"
+CONTEXT:  PL/pgSQL function compos() while casting return value to function's return type
 -- test: invalid use of composite expression in scalar-returning function
 create or replace function compos() returns int as $$
 begin
@@ -3679,17 +3633,10 @@ begin
 end;
 $$ language plpgsql;
 select compos();
-ERROR:  type "compostype" does not exist
-LINE 1: SELECT (1, 'hello')::compostype
-                             ^
-QUERY:  SELECT (1, 'hello')::compostype
-CONTEXT:  PL/pgSQL function compos() line 3 at RETURN
+ERROR:  invalid input syntax for integer: "(1,hello)"
+CONTEXT:  PL/pgSQL function compos() while casting return value to function's return type
 drop function compos();
 drop type compostype;
-ERROR:  DROP TYPE not supported yet
-LINE 1: drop type compostype;
-        ^
-HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1152. Click '+' on the description to raise its priority
 --
 -- Tests for 8.4's new RAISE features
 --
@@ -4668,10 +4615,6 @@ NOTICE:  {{3,4}}
 (1 row)
 
 create type xy_tuple AS (x int, y int);
-ERROR:  CREATE TYPE not supported yet
-LINE 1: create type xy_tuple AS (x int, y int);
-        ^
-HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1152. Click '+' on the description to raise its priority
 -- iteration over array of records
 create or replace function foreach_test(anyarray)
 returns void as $$
@@ -4684,13 +4627,24 @@ begin
   end;
 $$ language plpgsql;
 select foreach_test(ARRAY[(10,20),(40,69),(35,78)]::xy_tuple[]);
-ERROR:  type "xy_tuple[]" does not exist
-LINE 1: ...lect foreach_test(ARRAY[(10,20),(40,69),(35,78)]::xy_tuple[]...
-                                                             ^
+NOTICE:  (10,20)
+NOTICE:  (40,69)
+NOTICE:  (35,78)
+ foreach_test
+--------------
+
+(1 row)
+
 select foreach_test(ARRAY[[(10,20),(40,69)],[(35,78),(88,76)]]::xy_tuple[]);
-ERROR:  type "xy_tuple[]" does not exist
-LINE 1: ..._test(ARRAY[[(10,20),(40,69)],[(35,78),(88,76)]]::xy_tuple[]...
-                                                             ^
+NOTICE:  (10,20)
+NOTICE:  (40,69)
+NOTICE:  (35,78)
+NOTICE:  (88,76)
+ foreach_test
+--------------
+
+(1 row)
+
 create or replace function foreach_test(anyarray)
 returns void as $$
 declare x int; y int;
@@ -4702,13 +4656,24 @@ begin
   end;
 $$ language plpgsql;
 select foreach_test(ARRAY[(10,20),(40,69),(35,78)]::xy_tuple[]);
-ERROR:  type "xy_tuple[]" does not exist
-LINE 1: ...lect foreach_test(ARRAY[(10,20),(40,69),(35,78)]::xy_tuple[]...
-                                                             ^
+NOTICE:  x = 10, y = 20
+NOTICE:  x = 40, y = 69
+NOTICE:  x = 35, y = 78
+ foreach_test
+--------------
+
+(1 row)
+
 select foreach_test(ARRAY[[(10,20),(40,69)],[(35,78),(88,76)]]::xy_tuple[]);
-ERROR:  type "xy_tuple[]" does not exist
-LINE 1: ..._test(ARRAY[[(10,20),(40,69)],[(35,78),(88,76)]]::xy_tuple[]...
-                                                             ^
+NOTICE:  x = 10, y = 20
+NOTICE:  x = 40, y = 69
+NOTICE:  x = 35, y = 78
+NOTICE:  x = 88, y = 76
+ foreach_test
+--------------
+
+(1 row)
+
 -- slicing over array of composite types
 create or replace function foreach_test(anyarray)
 returns void as $$
@@ -4720,23 +4685,23 @@ begin
   end loop;
   end;
 $$ language plpgsql;
-ERROR:  type "xy_tuple[]" does not exist
-LINE 3: declare x xy_tuple[];
-                  ^
 select foreach_test(ARRAY[(10,20),(40,69),(35,78)]::xy_tuple[]);
-ERROR:  type "xy_tuple[]" does not exist
-LINE 1: ...lect foreach_test(ARRAY[(10,20),(40,69),(35,78)]::xy_tuple[]...
-                                                             ^
+NOTICE:  {"(10,20)","(40,69)","(35,78)"}
+ foreach_test
+--------------
+
+(1 row)
+
 select foreach_test(ARRAY[[(10,20),(40,69)],[(35,78),(88,76)]]::xy_tuple[]);
-ERROR:  type "xy_tuple[]" does not exist
-LINE 1: ..._test(ARRAY[[(10,20),(40,69)],[(35,78),(88,76)]]::xy_tuple[]...
-                                                             ^
+NOTICE:  {"(10,20)","(40,69)"}
+NOTICE:  {"(35,78)","(88,76)"}
+ foreach_test
+--------------
+
+(1 row)
+
 drop function foreach_test(anyarray);
 drop type xy_tuple;
-ERROR:  DROP TYPE not supported yet
-LINE 1: drop type xy_tuple;
-        ^
-HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1152. Click '+' on the description to raise its priority
 --
 -- Assorted tests for array subscript assignment
 --
