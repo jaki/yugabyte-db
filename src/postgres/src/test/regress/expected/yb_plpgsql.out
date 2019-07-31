@@ -1485,10 +1485,10 @@ update PSlot set slotlink = 'HS.base.hub1.1' where slotname = 'PS.base.b2';
 -- Now we take a look at the patchfield
 --
 select * from PField_v1 where pfname = 'PF0_1' order by slotname;
- pfname |       slotname       |          backside          |      patch
+ pfname |       slotname       |                         backside                         |                     patch
 --------+----------------------+----------------------------------------------------------+-----------------------------------------------
  PF0_1  | PS.base.a1           | WS.001.1a in room 001 -> Phone PH.hc001 (Hicom standard) | PS.base.ta1 -> Phone line -0 (Central call)
- PF0_1  | PS.base.a2           | WS.001.1b in room 001 -> - | -
+ PF0_1  | PS.base.a2           | WS.001.1b in room 001 -> -                               | -
  PF0_1  | PS.base.a3           | WS.001.2a in room 001 -> Phone PH.fax001 (Canon fax)     | PS.base.ta2 -> Phone line -501 (Fax entrance)
  PF0_1  | PS.base.a4           | WS.001.2b in room 001 -> -                               | -
  PF0_1  | PS.base.a5           | WS.001.3a in room 001 -> -                               | -
@@ -1496,19 +1496,19 @@ select * from PField_v1 where pfname = 'PF0_1' order by slotname;
  PF0_1  | PS.base.b1           | WS.002.1a in room 002 -> Phone PH.hc002 (Hicom standard) | PS.base.ta5 -> Phone line -103
  PF0_1  | PS.base.b2           | WS.002.1b in room 002 -> orion IF eth0 (PC)              | Patchfield PF0_1 hub slot 1
  PF0_1  | PS.base.b3           | WS.002.2a in room 002 -> Phone PH.hc003 (Hicom standard) | PS.base.tb2 -> Phone line -106
- PF0_1  | PS.base.b4           | WS.002.2b in room 002 -> - | -
- PF0_1  | PS.base.b5           | WS.002.3a in room 002 -> - | -
- PF0_1  | PS.base.b6           | WS.002.3b in room 002 -> - | -
- PF0_1  | PS.base.c1           | WS.003.1a in room 003 -> - | -
- PF0_1  | PS.base.c2           | WS.003.1b in room 003 -> - | -
- PF0_1  | PS.base.c3           | WS.003.2a in room 003 -> - | -
- PF0_1  | PS.base.c4           | WS.003.2b in room 003 -> - | -
- PF0_1  | PS.base.c5           | WS.003.3a in room 003 -> - | -
- PF0_1  | PS.base.c6           | WS.003.3b in room 003 -> - | -
+ PF0_1  | PS.base.b4           | WS.002.2b in room 002 -> -                               | -
+ PF0_1  | PS.base.b5           | WS.002.3a in room 002 -> -                               | -
+ PF0_1  | PS.base.b6           | WS.002.3b in room 002 -> -                               | -
+ PF0_1  | PS.base.c1           | WS.003.1a in room 003 -> -                               | -
+ PF0_1  | PS.base.c2           | WS.003.1b in room 003 -> -                               | -
+ PF0_1  | PS.base.c3           | WS.003.2a in room 003 -> -                               | -
+ PF0_1  | PS.base.c4           | WS.003.2b in room 003 -> -                               | -
+ PF0_1  | PS.base.c5           | WS.003.3a in room 003 -> -                               | -
+ PF0_1  | PS.base.c6           | WS.003.3b in room 003 -> -                               | -
 (18 rows)
 
 select * from PField_v1 where pfname = 'PF0_2' order by slotname;
- pfname | slotname | backside | patch
+ pfname |       slotname       |            backside            |                                 patch
 --------+----------------------+--------------------------------+------------------------------------------------------------------------
  PF0_2  | PS.base.ta1          | Phone line -0 (Central call)   | PS.base.a1 -> WS.001.1a in room 001 -> Phone PH.hc001 (Hicom standard)
  PF0_2  | PS.base.ta2          | Phone line -501 (Fax entrance) | PS.base.a3 -> WS.001.2a in room 001 -> Phone PH.fax001 (Canon fax)
@@ -2567,7 +2567,7 @@ select execute_into_test('eifoo');
 NOTICE:  10 1
 NOTICE:  10 15
 NOTICE:  10 15 20
- execute_into_test 
+ execute_into_test
 -------------------
  (1,2)
 (1 row)
@@ -2734,6 +2734,10 @@ select * from foo order by f1;
   3 |  4
 (2 rows)
 
+-- TODO(jason): Remove the following line when the above comments about issue
+-- #1541 are uncommented.  This is to present foo as expected for the following
+-- tests.  (See the output of the above select in `expected/plpgsql.out`.)
+insert into foo values (5, 6), (5, 6), (7, 8), (9, 10);
 create or replace function stricttest() returns void as $$
 declare x record;
 begin
@@ -2741,8 +2745,13 @@ begin
   select * from foo where f1 = 3 into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+NOTICE:  x.f1 = 3, x.f2 = 4
+ stricttest
+------------
+
+(1 row)
+
 create or replace function stricttest() returns void as $$
 declare x record;
 begin
@@ -2750,8 +2759,9 @@ begin
   select * from foo where f1 = 0 into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+ERROR:  query returned no rows
+CONTEXT:  PL/pgSQL function stricttest() line 5 at SQL statement
 create or replace function stricttest() returns void as $$
 declare x record;
 begin
@@ -2759,8 +2769,9 @@ begin
   select * from foo where f1 > 3 into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+ERROR:  query returned more than one row
+CONTEXT:  PL/pgSQL function stricttest() line 5 at SQL statement
 create or replace function stricttest() returns void as $$
 declare x record;
 begin
@@ -2768,8 +2779,13 @@ begin
   execute 'select * from foo where f1 = 3' into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+NOTICE:  x.f1 = 3, x.f2 = 4
+ stricttest
+------------
+
+(1 row)
+
 create or replace function stricttest() returns void as $$
 declare x record;
 begin
@@ -2777,8 +2793,9 @@ begin
   execute 'select * from foo where f1 = 0' into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+ERROR:  query returned no rows
+CONTEXT:  PL/pgSQL function stricttest() line 5 at EXECUTE
 create or replace function stricttest() returns void as $$
 declare x record;
 begin
@@ -2786,8 +2803,9 @@ begin
   execute 'select * from foo where f1 > 3' into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+ERROR:  query returned more than one row
+CONTEXT:  PL/pgSQL function stricttest() line 5 at EXECUTE
 drop function stricttest();
 -- test printing parameters after failure due to STRICT
 set plpgsql.print_strict_params to true;
@@ -2801,8 +2819,10 @@ begin
   select * from foo where f1 = p1 and f1::text = p3 into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+ERROR:  query returned no rows
+DETAIL:  parameters: p1 = '2', p3 = 'foo'
+CONTEXT:  PL/pgSQL function stricttest() line 8 at SQL statement
 create or replace function stricttest() returns void as $$
 declare
 x record;
@@ -2813,8 +2833,10 @@ begin
   select * from foo where f1 > p1 or f1::text = p3  into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+ERROR:  query returned more than one row
+DETAIL:  parameters: p1 = '2', p3 = 'foo'
+CONTEXT:  PL/pgSQL function stricttest() line 8 at SQL statement
 create or replace function stricttest() returns void as $$
 declare x record;
 begin
@@ -2822,8 +2844,9 @@ begin
   select * from foo where f1 > 3 into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+ERROR:  query returned more than one row
+CONTEXT:  PL/pgSQL function stricttest() line 5 at SQL statement
 create or replace function stricttest() returns void as $$
 declare x record;
 begin
@@ -2831,8 +2854,10 @@ begin
   execute 'select * from foo where f1 = $1 or f1::text = $2' using 0, 'foo' into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+ERROR:  query returned no rows
+DETAIL:  parameters: $1 = '0', $2 = 'foo'
+CONTEXT:  PL/pgSQL function stricttest() line 5 at EXECUTE
 create or replace function stricttest() returns void as $$
 declare x record;
 begin
@@ -2840,8 +2865,10 @@ begin
   execute 'select * from foo where f1 > $1' using 1 into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+ERROR:  query returned more than one row
+DETAIL:  parameters: $1 = '1'
+CONTEXT:  PL/pgSQL function stricttest() line 5 at EXECUTE
 create or replace function stricttest() returns void as $$
 declare x record;
 begin
@@ -2849,8 +2876,9 @@ begin
   execute 'select * from foo where f1 > 3' into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+ERROR:  query returned more than one row
+CONTEXT:  PL/pgSQL function stricttest() line 5 at EXECUTE
 create or replace function stricttest() returns void as $$
 -- override the global
 #print_strict_params off
@@ -2863,8 +2891,9 @@ begin
   select * from foo where f1 > p1 or f1::text = p3  into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+ERROR:  query returned more than one row
+CONTEXT:  PL/pgSQL function stricttest() line 10 at SQL statement
 reset plpgsql.print_strict_params;
 create or replace function stricttest() returns void as $$
 -- override the global
@@ -2878,8 +2907,10 @@ begin
   select * from foo where f1 > p1 or f1::text = p3  into strict x;
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
+ERROR:  query returned more than one row
+DETAIL:  parameters: p1 = '2', p3 = 'foo'
+CONTEXT:  PL/pgSQL function stricttest() line 10 at SQL statement
 -- test warnings and errors
 set plpgsql.extra_warnings to 'all';
 set plpgsql.extra_warnings to 'none';
@@ -3508,7 +3539,7 @@ begin
 end;
 $$ language plpgsql;
 select compos();
-  compos   
+  compos
 -----------
  (1,hello)
 (1 row)
@@ -3572,16 +3603,24 @@ begin
   return v;
 end;
 $$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select composrec();
+select composrec();
+ composrec
+-----------
+ (1,hello)
+(1 row)
+
 -- test: return row expr in return statement.
 create or replace function composrec() returns record as $$
 begin
   return (1, 'hello');
 end;
 $$ language plpgsql;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select composrec();
+select composrec();
+ composrec
+-----------
+ (1,hello)
+(1 row)
+
 drop function composrec();
 -- test: row expr in RETURN NEXT statement.
 create or replace function compos() returns setof compostype as $$
@@ -4725,9 +4764,18 @@ begin
   r.ar[2] := 'replace';
   return r.ar;
 end$$;
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select arrayassign1();
--- select arrayassign1(); -- try again to exercise internal caching
+select arrayassign1();
+   arrayassign1
+-------------------
+ {foo,replace,baz}
+(1 row)
+
+select arrayassign1(); -- try again to exercise internal caching
+   arrayassign1
+-------------------
+ {foo,replace,baz}
+(1 row)
+
 create domain orderedarray as int[2]
   constraint sorted check (value[1] < value[2]);
 select '{1,2}'::orderedarray;

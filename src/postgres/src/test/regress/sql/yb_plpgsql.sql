@@ -2384,6 +2384,10 @@ end$$ language plpgsql;
 -- select stricttest();
 
 select * from foo order by f1;
+-- TODO(jason): Remove the following line when the above comments about issue
+-- #1541 are uncommented.  This is to present foo as expected for the following
+-- tests.  (See the output of the above select in `expected/plpgsql.out`.)
+insert into foo values (5, 6), (5, 6), (7, 8), (9, 10);
 
 create or replace function stricttest() returns void as $$
 declare x record;
@@ -2393,8 +2397,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 create or replace function stricttest() returns void as $$
 declare x record;
@@ -2404,8 +2407,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 create or replace function stricttest() returns void as $$
 declare x record;
@@ -2415,8 +2417,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 create or replace function stricttest() returns void as $$
 declare x record;
@@ -2426,8 +2427,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 create or replace function stricttest() returns void as $$
 declare x record;
@@ -2437,8 +2437,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 create or replace function stricttest() returns void as $$
 declare x record;
@@ -2448,8 +2447,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 drop function stricttest();
 
@@ -2468,8 +2466,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 create or replace function stricttest() returns void as $$
 declare
@@ -2482,8 +2479,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 create or replace function stricttest() returns void as $$
 declare x record;
@@ -2493,8 +2489,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 create or replace function stricttest() returns void as $$
 declare x record;
@@ -2504,8 +2499,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 create or replace function stricttest() returns void as $$
 declare x record;
@@ -2515,8 +2509,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 create or replace function stricttest() returns void as $$
 declare x record;
@@ -2526,8 +2519,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 create or replace function stricttest() returns void as $$
 -- override the global
@@ -2542,8 +2534,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 reset plpgsql.print_strict_params;
 
@@ -2560,8 +2551,7 @@ begin
   raise notice 'x.f1 = %, x.f2 = %', x.f1, x.f2;
 end$$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select stricttest();
+select stricttest();
 
 -- test warnings and errors
 set plpgsql.extra_warnings to 'all';
@@ -3071,8 +3061,7 @@ begin
 end;
 $$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select composrec();
+select composrec();
 
 -- test: return row expr in return statement.
 create or replace function composrec() returns record as $$
@@ -3081,8 +3070,7 @@ begin
 end;
 $$ language plpgsql;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select composrec();
+select composrec();
 
 drop function composrec();
 
@@ -3961,9 +3949,8 @@ begin
   return r.ar;
 end$$;
 
--- TODO:(dmitry) Uncomment when issue #1676 will be resolved
--- select arrayassign1();
--- select arrayassign1(); -- try again to exercise internal caching
+select arrayassign1();
+select arrayassign1(); -- try again to exercise internal caching
 
 create domain orderedarray as int[2]
   constraint sorted check (value[1] < value[2]);
