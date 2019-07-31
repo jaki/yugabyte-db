@@ -4262,18 +4262,17 @@ BEGIN
 END;
 $$;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- CREATE TRIGGER transition_table_base_ins_trig
---   AFTER INSERT ON transition_table_base
---   REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
---   FOR EACH STATEMENT
---   EXECUTE PROCEDURE transition_table_base_ins_func();
+CREATE TRIGGER transition_table_base_ins_trig
+  AFTER INSERT ON transition_table_base
+  REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
+  FOR EACH STATEMENT
+  EXECUTE PROCEDURE transition_table_base_ins_func();
 
--- CREATE TRIGGER transition_table_base_ins_trig
---   AFTER INSERT ON transition_table_base
---   REFERENCING NEW TABLE AS newtable
---   FOR EACH STATEMENT
---   EXECUTE PROCEDURE transition_table_base_ins_func();
+CREATE TRIGGER transition_table_base_ins_trig
+  AFTER INSERT ON transition_table_base
+  REFERENCING NEW TABLE AS newtable
+  FOR EACH STATEMENT
+  EXECUTE PROCEDURE transition_table_base_ins_func();
 
 INSERT INTO transition_table_base VALUES (1, 'One'), (2, 'Two');
 INSERT INTO transition_table_base VALUES (3, 'Three'), (4, 'Four');
@@ -4300,11 +4299,11 @@ BEGIN
 END;
 $$;
 
--- CREATE TRIGGER transition_table_base_upd_trig
---   AFTER UPDATE ON transition_table_base
---   REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
---   FOR EACH STATEMENT
---   EXECUTE PROCEDURE transition_table_base_upd_func();
+CREATE TRIGGER transition_table_base_upd_trig
+  AFTER UPDATE ON transition_table_base
+  REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
+  FOR EACH STATEMENT
+  EXECUTE PROCEDURE transition_table_base_upd_func();
 
 UPDATE transition_table_base
   SET val = '*' || val || '*'
@@ -4347,12 +4346,11 @@ AS $$
   END;
 $$;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- CREATE TRIGGER transition_table_level1_ri_parent_del_trigger
---   AFTER DELETE ON transition_table_level1
---   REFERENCING OLD TABLE AS p
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     transition_table_level1_ri_parent_del_func();
+CREATE TRIGGER transition_table_level1_ri_parent_del_trigger
+  AFTER DELETE ON transition_table_level1
+  REFERENCING OLD TABLE AS p
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    transition_table_level1_ri_parent_del_func();
 
 CREATE FUNCTION transition_table_level1_ri_parent_upd_func()
   RETURNS TRIGGER
@@ -4377,12 +4375,11 @@ AS $$
   END;
 $$;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- CREATE TRIGGER transition_table_level1_ri_parent_upd_trigger
---   AFTER UPDATE ON transition_table_level1
---   REFERENCING OLD TABLE AS d NEW TABLE AS i
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     transition_table_level1_ri_parent_upd_func();
+CREATE TRIGGER transition_table_level1_ri_parent_upd_trigger
+  AFTER UPDATE ON transition_table_level1
+  REFERENCING OLD TABLE AS d NEW TABLE AS i
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    transition_table_level1_ri_parent_upd_func();
 
 CREATE FUNCTION transition_table_level2_ri_child_insupd_func()
   RETURNS TRIGGER
@@ -4400,18 +4397,17 @@ AS $$
   END;
 $$;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- CREATE TRIGGER transition_table_level2_ri_child_ins_trigger
---   AFTER INSERT ON transition_table_level2
---   REFERENCING NEW TABLE AS i
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     transition_table_level2_ri_child_insupd_func();
+CREATE TRIGGER transition_table_level2_ri_child_ins_trigger
+  AFTER INSERT ON transition_table_level2
+  REFERENCING NEW TABLE AS i
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    transition_table_level2_ri_child_insupd_func();
 
--- CREATE TRIGGER transition_table_level2_ri_child_upd_trigger
---   AFTER UPDATE ON transition_table_level2
---   REFERENCING NEW TABLE AS i
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     transition_table_level2_ri_child_insupd_func();
+CREATE TRIGGER transition_table_level2_ri_child_upd_trigger
+  AFTER UPDATE ON transition_table_level2
+  REFERENCING NEW TABLE AS i
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    transition_table_level2_ri_child_insupd_func();
 
 -- create initial test data
 INSERT INTO transition_table_level1 (level1_no)
@@ -4445,12 +4441,11 @@ AS $$
   END;
 $$;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- CREATE TRIGGER transition_table_level2_bad_usage_trigger
---   AFTER DELETE ON transition_table_level2
---   REFERENCING OLD TABLE AS dx
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     transition_table_level2_bad_usage_func();
+CREATE TRIGGER transition_table_level2_bad_usage_trigger
+  AFTER DELETE ON transition_table_level2
+  REFERENCING OLD TABLE AS dx
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    transition_table_level2_bad_usage_func();
 
 DELETE FROM transition_table_level2
   WHERE level2_no BETWEEN 301 AND 305;
@@ -4505,20 +4500,19 @@ BEGIN
 END;
 $$;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
 -- should fail, TRUNCATE is not compatible with transition tables
--- CREATE TRIGGER alter_table_under_transition_tables_upd_trigger
---   AFTER TRUNCATE OR UPDATE ON alter_table_under_transition_tables
---   REFERENCING OLD TABLE AS d NEW TABLE AS i
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     alter_table_under_transition_tables_upd_func();
+CREATE TRIGGER alter_table_under_transition_tables_upd_trigger
+  AFTER TRUNCATE OR UPDATE ON alter_table_under_transition_tables
+  REFERENCING OLD TABLE AS d NEW TABLE AS i
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    alter_table_under_transition_tables_upd_func();
 
 -- should work
--- CREATE TRIGGER alter_table_under_transition_tables_upd_trigger
---   AFTER UPDATE ON alter_table_under_transition_tables
---   REFERENCING OLD TABLE AS d NEW TABLE AS i
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     alter_table_under_transition_tables_upd_func();
+CREATE TRIGGER alter_table_under_transition_tables_upd_trigger
+  AFTER UPDATE ON alter_table_under_transition_tables
+  REFERENCING OLD TABLE AS d NEW TABLE AS i
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    alter_table_under_transition_tables_upd_func();
 
 INSERT INTO alter_table_under_transition_tables
   VALUES (1, '1'), (2, '2'), (3, '3');
@@ -4554,10 +4548,9 @@ BEGIN
     RETURN NULL;
 END$$;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- CREATE TRIGGER my_trigger AFTER UPDATE ON multi_test
---   REFERENCING NEW TABLE AS new_test OLD TABLE as old_test
---   FOR EACH STATEMENT EXECUTE PROCEDURE multi_test_trig();
+CREATE TRIGGER my_trigger AFTER UPDATE ON multi_test
+  REFERENCING NEW TABLE AS new_test OLD TABLE as old_test
+  FOR EACH STATEMENT EXECUTE PROCEDURE multi_test_trig();
 
 UPDATE multi_test SET i = i;
 

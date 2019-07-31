@@ -5118,17 +5118,24 @@ BEGIN
   RETURN new;
 END;
 $$;
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- CREATE TRIGGER transition_table_base_ins_trig
---   AFTER INSERT ON transition_table_base
---   REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
---   FOR EACH STATEMENT
---   EXECUTE PROCEDURE transition_table_base_ins_func();
--- CREATE TRIGGER transition_table_base_ins_trig
---   AFTER INSERT ON transition_table_base
---   REFERENCING NEW TABLE AS newtable
---   FOR EACH STATEMENT
---   EXECUTE PROCEDURE transition_table_base_ins_func();
+CREATE TRIGGER transition_table_base_ins_trig
+  AFTER INSERT ON transition_table_base
+  REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
+  FOR EACH STATEMENT
+  EXECUTE PROCEDURE transition_table_base_ins_func();
+ERROR:  REFERENCING clause (transition tables) not supported yet
+LINE 3:   REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
+          ^
+HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1668. Click '+' on the description to raise its priority
+CREATE TRIGGER transition_table_base_ins_trig
+  AFTER INSERT ON transition_table_base
+  REFERENCING NEW TABLE AS newtable
+  FOR EACH STATEMENT
+  EXECUTE PROCEDURE transition_table_base_ins_func();
+ERROR:  REFERENCING clause (transition tables) not supported yet
+LINE 3:   REFERENCING NEW TABLE AS newtable
+          ^
+HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1668. Click '+' on the description to raise its priority
 INSERT INTO transition_table_base VALUES (1, 'One'), (2, 'Two');
 INSERT INTO transition_table_base VALUES (3, 'Three'), (4, 'Four');
 CREATE OR REPLACE FUNCTION transition_table_base_upd_func()
@@ -5152,11 +5159,15 @@ BEGIN
   RETURN new;
 END;
 $$;
--- CREATE TRIGGER transition_table_base_upd_trig
---   AFTER UPDATE ON transition_table_base
---   REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
---   FOR EACH STATEMENT
---   EXECUTE PROCEDURE transition_table_base_upd_func();
+CREATE TRIGGER transition_table_base_upd_trig
+  AFTER UPDATE ON transition_table_base
+  REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
+  FOR EACH STATEMENT
+  EXECUTE PROCEDURE transition_table_base_upd_func();
+ERROR:  REFERENCING clause (transition tables) not supported yet
+LINE 3:   REFERENCING OLD TABLE AS oldtable NEW TABLE AS newtable
+          ^
+HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1668. Click '+' on the description to raise its priority
 UPDATE transition_table_base
   SET val = '*' || val || '*'
   WHERE id BETWEEN 2 AND 3;
@@ -5193,12 +5204,15 @@ AS $$
     RETURN NULL;
   END;
 $$;
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- CREATE TRIGGER transition_table_level1_ri_parent_del_trigger
---   AFTER DELETE ON transition_table_level1
---   REFERENCING OLD TABLE AS p
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     transition_table_level1_ri_parent_del_func();
+CREATE TRIGGER transition_table_level1_ri_parent_del_trigger
+  AFTER DELETE ON transition_table_level1
+  REFERENCING OLD TABLE AS p
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    transition_table_level1_ri_parent_del_func();
+ERROR:  REFERENCING clause (transition tables) not supported yet
+LINE 3:   REFERENCING OLD TABLE AS p
+          ^
+HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1668. Click '+' on the description to raise its priority
 CREATE FUNCTION transition_table_level1_ri_parent_upd_func()
   RETURNS TRIGGER
   LANGUAGE plpgsql
@@ -5221,12 +5235,15 @@ AS $$
     RETURN NULL;
   END;
 $$;
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- CREATE TRIGGER transition_table_level1_ri_parent_upd_trigger
---   AFTER UPDATE ON transition_table_level1
---   REFERENCING OLD TABLE AS d NEW TABLE AS i
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     transition_table_level1_ri_parent_upd_func();
+CREATE TRIGGER transition_table_level1_ri_parent_upd_trigger
+  AFTER UPDATE ON transition_table_level1
+  REFERENCING OLD TABLE AS d NEW TABLE AS i
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    transition_table_level1_ri_parent_upd_func();
+ERROR:  REFERENCING clause (transition tables) not supported yet
+LINE 3:   REFERENCING OLD TABLE AS d NEW TABLE AS i
+          ^
+HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1668. Click '+' on the description to raise its priority
 CREATE FUNCTION transition_table_level2_ri_child_insupd_func()
   RETURNS TRIGGER
   LANGUAGE plpgsql
@@ -5242,17 +5259,24 @@ AS $$
     RETURN NULL;
   END;
 $$;
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- CREATE TRIGGER transition_table_level2_ri_child_ins_trigger
---   AFTER INSERT ON transition_table_level2
---   REFERENCING NEW TABLE AS i
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     transition_table_level2_ri_child_insupd_func();
--- CREATE TRIGGER transition_table_level2_ri_child_upd_trigger
---   AFTER UPDATE ON transition_table_level2
---   REFERENCING NEW TABLE AS i
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     transition_table_level2_ri_child_insupd_func();
+CREATE TRIGGER transition_table_level2_ri_child_ins_trigger
+  AFTER INSERT ON transition_table_level2
+  REFERENCING NEW TABLE AS i
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    transition_table_level2_ri_child_insupd_func();
+ERROR:  REFERENCING clause (transition tables) not supported yet
+LINE 3:   REFERENCING NEW TABLE AS i
+          ^
+HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1668. Click '+' on the description to raise its priority
+CREATE TRIGGER transition_table_level2_ri_child_upd_trigger
+  AFTER UPDATE ON transition_table_level2
+  REFERENCING NEW TABLE AS i
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    transition_table_level2_ri_child_insupd_func();
+ERROR:  REFERENCING clause (transition tables) not supported yet
+LINE 3:   REFERENCING NEW TABLE AS i
+          ^
+HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1668. Click '+' on the description to raise its priority
 -- create initial test data
 INSERT INTO transition_table_level1 (level1_no)
   SELECT generate_series(1,200);
@@ -5295,12 +5319,15 @@ AS $$
     RETURN NULL;
   END;
 $$;
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- CREATE TRIGGER transition_table_level2_bad_usage_trigger
---   AFTER DELETE ON transition_table_level2
---   REFERENCING OLD TABLE AS dx
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     transition_table_level2_bad_usage_func();
+CREATE TRIGGER transition_table_level2_bad_usage_trigger
+  AFTER DELETE ON transition_table_level2
+  REFERENCING OLD TABLE AS dx
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    transition_table_level2_bad_usage_func();
+ERROR:  REFERENCING clause (transition tables) not supported yet
+LINE 3:   REFERENCING OLD TABLE AS dx
+          ^
+HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1668. Click '+' on the description to raise its priority
 DELETE FROM transition_table_level2
   WHERE level2_no BETWEEN 301 AND 305;
 DROP TRIGGER transition_table_level2_bad_usage_trigger
@@ -5353,19 +5380,26 @@ BEGIN
   RETURN NULL;
 END;
 $$;
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
 -- should fail, TRUNCATE is not compatible with transition tables
--- CREATE TRIGGER alter_table_under_transition_tables_upd_trigger
---   AFTER TRUNCATE OR UPDATE ON alter_table_under_transition_tables
---   REFERENCING OLD TABLE AS d NEW TABLE AS i
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     alter_table_under_transition_tables_upd_func();
+CREATE TRIGGER alter_table_under_transition_tables_upd_trigger
+  AFTER TRUNCATE OR UPDATE ON alter_table_under_transition_tables
+  REFERENCING OLD TABLE AS d NEW TABLE AS i
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    alter_table_under_transition_tables_upd_func();
+ERROR:  REFERENCING clause (transition tables) not supported yet
+LINE 3:   REFERENCING OLD TABLE AS d NEW TABLE AS i
+          ^
+HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1668. Click '+' on the description to raise its priority
 -- should work
--- CREATE TRIGGER alter_table_under_transition_tables_upd_trigger
---   AFTER UPDATE ON alter_table_under_transition_tables
---   REFERENCING OLD TABLE AS d NEW TABLE AS i
---   FOR EACH STATEMENT EXECUTE PROCEDURE
---     alter_table_under_transition_tables_upd_func();
+CREATE TRIGGER alter_table_under_transition_tables_upd_trigger
+  AFTER UPDATE ON alter_table_under_transition_tables
+  REFERENCING OLD TABLE AS d NEW TABLE AS i
+  FOR EACH STATEMENT EXECUTE PROCEDURE
+    alter_table_under_transition_tables_upd_func();
+ERROR:  REFERENCING clause (transition tables) not supported yet
+LINE 3:   REFERENCING OLD TABLE AS d NEW TABLE AS i
+          ^
+HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1668. Click '+' on the description to raise its priority
 INSERT INTO alter_table_under_transition_tables
   VALUES (1, '1'), (2, '2'), (3, '3');
 UPDATE alter_table_under_transition_tables
@@ -5400,10 +5434,13 @@ BEGIN
        FROM (SELECT * FROM new_test UNION ALL SELECT * FROM new_test) ss);
     RETURN NULL;
 END$$;
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- CREATE TRIGGER my_trigger AFTER UPDATE ON multi_test
---   REFERENCING NEW TABLE AS new_test OLD TABLE as old_test
---   FOR EACH STATEMENT EXECUTE PROCEDURE multi_test_trig();
+CREATE TRIGGER my_trigger AFTER UPDATE ON multi_test
+  REFERENCING NEW TABLE AS new_test OLD TABLE as old_test
+  FOR EACH STATEMENT EXECUTE PROCEDURE multi_test_trig();
+ERROR:  REFERENCING clause (transition tables) not supported yet
+LINE 2:   REFERENCING NEW TABLE AS new_test OLD TABLE as old_test
+          ^
+HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1668. Click '+' on the description to raise its priority
 UPDATE multi_test SET i = i;
 DROP TABLE multi_test;
 DROP FUNCTION multi_test_trig();
