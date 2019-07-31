@@ -136,9 +136,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_room_au after update
---     on Room for each row execute procedure tg_room_au();
+create trigger tg_room_au after update
+    on Room for each row execute procedure tg_room_au();
 
 
 -- ************************************************************
@@ -152,9 +151,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_room_ad after delete
---     on Room for each row execute procedure tg_room_ad();
+create trigger tg_room_ad after delete
+    on Room for each row execute procedure tg_room_ad();
 
 
 -- ************************************************************
@@ -170,9 +168,8 @@ begin
 end;
 $$ language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_wslot_biu before insert or update
---     on WSlot for each row execute procedure tg_wslot_biu();
+create trigger tg_wslot_biu before insert or update
+    on WSlot for each row execute procedure tg_wslot_biu();
 
 
 -- ************************************************************
@@ -188,9 +185,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_pfield_au after update
---     on PField for each row execute procedure tg_pfield_au();
+create trigger tg_pfield_au after update
+    on PField for each row execute procedure tg_pfield_au();
 
 
 -- ************************************************************
@@ -204,9 +200,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_pfield_ad after delete
---     on PField for each row execute procedure tg_pfield_ad();
+create trigger tg_pfield_ad after delete
+    on PField for each row execute procedure tg_pfield_ad();
 
 
 -- ************************************************************
@@ -226,9 +221,8 @@ begin
 end;
 $proc$ language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_pslot_biu before insert or update
---     on PSlot for each row execute procedure tg_pslot_biu();
+create trigger tg_pslot_biu before insert or update
+    on PSlot for each row execute procedure tg_pslot_biu();
 
 
 -- ************************************************************
@@ -244,9 +238,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_system_au after update
---     on System for each row execute procedure tg_system_au();
+create trigger tg_system_au after update
+    on System for each row execute procedure tg_system_au();
 
 
 -- ************************************************************
@@ -273,9 +266,8 @@ begin
 end;
 $$ language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_iface_biu before insert or update
---     on IFace for each row execute procedure tg_iface_biu();
+create trigger tg_iface_biu before insert or update
+    on IFace for each row execute procedure tg_iface_biu();
 
 
 -- ************************************************************
@@ -305,9 +297,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_hub_a after insert or update or delete
---     on Hub for each row execute procedure tg_hub_a();
+create trigger tg_hub_a after insert or update or delete
+    on Hub for each row execute procedure tg_hub_a();
 
 
 -- ************************************************************
@@ -372,9 +363,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_hslot_biu before insert or update
---     on HSlot for each row execute procedure tg_hslot_biu();
+create trigger tg_hslot_biu before insert or update
+    on HSlot for each row execute procedure tg_hslot_biu();
 
 
 -- ************************************************************
@@ -396,9 +386,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_hslot_bd before delete
---     on HSlot for each row execute procedure tg_hslot_bd();
+create trigger tg_hslot_bd before delete
+    on HSlot for each row execute procedure tg_hslot_bd();
 
 
 -- ************************************************************
@@ -414,21 +403,20 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_chkslotname before insert
---     on PSlot for each row execute procedure tg_chkslotname('PS');
+create trigger tg_chkslotname before insert
+    on PSlot for each row execute procedure tg_chkslotname('PS');
 
--- create trigger tg_chkslotname before insert
---     on WSlot for each row execute procedure tg_chkslotname('WS');
+create trigger tg_chkslotname before insert
+    on WSlot for each row execute procedure tg_chkslotname('WS');
 
--- create trigger tg_chkslotname before insert
---     on PLine for each row execute procedure tg_chkslotname('PL');
+create trigger tg_chkslotname before insert
+    on PLine for each row execute procedure tg_chkslotname('PL');
 
--- create trigger tg_chkslotname before insert
---     on IFace for each row execute procedure tg_chkslotname('IF');
+create trigger tg_chkslotname before insert
+    on IFace for each row execute procedure tg_chkslotname('IF');
 
--- create trigger tg_chkslotname before insert
---     on PHone for each row execute procedure tg_chkslotname('PH');
+create trigger tg_chkslotname before insert
+    on PHone for each row execute procedure tg_chkslotname('PH');
 
 
 -- ************************************************************
@@ -444,21 +432,20 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_chkslotlink before insert or update
---     on PSlot for each row execute procedure tg_chkslotlink();
+create trigger tg_chkslotlink before insert or update
+    on PSlot for each row execute procedure tg_chkslotlink();
 
--- create trigger tg_chkslotlink before insert or update
---     on WSlot for each row execute procedure tg_chkslotlink();
+create trigger tg_chkslotlink before insert or update
+    on WSlot for each row execute procedure tg_chkslotlink();
 
--- create trigger tg_chkslotlink before insert or update
---     on IFace for each row execute procedure tg_chkslotlink();
+create trigger tg_chkslotlink before insert or update
+    on IFace for each row execute procedure tg_chkslotlink();
 
--- create trigger tg_chkslotlink before insert or update
---     on HSlot for each row execute procedure tg_chkslotlink();
+create trigger tg_chkslotlink before insert or update
+    on HSlot for each row execute procedure tg_chkslotlink();
 
--- create trigger tg_chkslotlink before insert or update
---     on PHone for each row execute procedure tg_chkslotlink();
+create trigger tg_chkslotlink before insert or update
+    on PHone for each row execute procedure tg_chkslotlink();
 
 
 -- ************************************************************
@@ -474,15 +461,14 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_chkbacklink before insert or update
---     on PSlot for each row execute procedure tg_chkbacklink();
+create trigger tg_chkbacklink before insert or update
+    on PSlot for each row execute procedure tg_chkbacklink();
 
--- create trigger tg_chkbacklink before insert or update
---     on WSlot for each row execute procedure tg_chkbacklink();
+create trigger tg_chkbacklink before insert or update
+    on WSlot for each row execute procedure tg_chkbacklink();
 
--- create trigger tg_chkbacklink before insert or update
---     on PLine for each row execute procedure tg_chkbacklink();
+create trigger tg_chkbacklink before insert or update
+    on PLine for each row execute procedure tg_chkbacklink();
 
 
 -- ************************************************************
@@ -510,9 +496,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_pslot_bu before update
---     on PSlot for each row execute procedure tg_pslot_bu();
+create trigger tg_pslot_bu before update
+    on PSlot for each row execute procedure tg_pslot_bu();
 
 
 -- ************************************************************
@@ -540,9 +525,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_wslot_bu before update
---     on WSlot for each row execute procedure tg_Wslot_bu();
+create trigger tg_wslot_bu before update
+    on WSlot for each row execute procedure tg_Wslot_bu();
 
 
 -- ************************************************************
@@ -570,9 +554,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_pline_bu before update
---     on PLine for each row execute procedure tg_pline_bu();
+create trigger tg_pline_bu before update
+    on PLine for each row execute procedure tg_pline_bu();
 
 
 -- ************************************************************
@@ -600,9 +583,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_iface_bu before update
---     on IFace for each row execute procedure tg_iface_bu();
+create trigger tg_iface_bu before update
+    on IFace for each row execute procedure tg_iface_bu();
 
 
 -- ************************************************************
@@ -630,9 +612,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_hslot_bu before update
---     on HSlot for each row execute procedure tg_hslot_bu();
+create trigger tg_hslot_bu before update
+    on HSlot for each row execute procedure tg_hslot_bu();
 
 
 -- ************************************************************
@@ -658,9 +639,8 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_phone_bu before update
---     on PHone for each row execute procedure tg_phone_bu();
+create trigger tg_phone_bu before update
+    on PHone for each row execute procedure tg_phone_bu();
 
 
 -- ************************************************************
@@ -702,15 +682,14 @@ end;
 ' language plpgsql;
 
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_backlink_a after insert or update or delete
---     on PSlot for each row execute procedure tg_backlink_a('PS');
+create trigger tg_backlink_a after insert or update or delete
+    on PSlot for each row execute procedure tg_backlink_a('PS');
 
--- create trigger tg_backlink_a after insert or update or delete
---     on WSlot for each row execute procedure tg_backlink_a('WS');
+create trigger tg_backlink_a after insert or update or delete
+    on WSlot for each row execute procedure tg_backlink_a('WS');
 
--- create trigger tg_backlink_a after insert or update or delete
---     on PLine for each row execute procedure tg_backlink_a('PL');
+create trigger tg_backlink_a after insert or update or delete
+    on PLine for each row execute procedure tg_backlink_a('PL');
 
 
 -- ************************************************************
@@ -854,21 +833,21 @@ begin
 end;
 ' language plpgsql;
 
--- TODO(dmitry) Enable once TRIGGER will be implemented (#1156)
--- create trigger tg_slotlink_a after insert or update or delete
---    on PSlot for each row execute procedure tg_slotlink_a('PS');
 
--- create trigger tg_slotlink_a after insert or update or delete
---     on WSlot for each row execute procedure tg_slotlink_a('WS');
+create trigger tg_slotlink_a after insert or update or delete
+    on PSlot for each row execute procedure tg_slotlink_a('PS');
 
--- create trigger tg_slotlink_a after insert or update or delete
---     on IFace for each row execute procedure tg_slotlink_a('IF');
+create trigger tg_slotlink_a after insert or update or delete
+    on WSlot for each row execute procedure tg_slotlink_a('WS');
 
--- create trigger tg_slotlink_a after insert or update or delete
---     on HSlot for each row execute procedure tg_slotlink_a('HS');
+create trigger tg_slotlink_a after insert or update or delete
+    on IFace for each row execute procedure tg_slotlink_a('IF');
 
--- create trigger tg_slotlink_a after insert or update or delete
---     on PHone for each row execute procedure tg_slotlink_a('PH');
+create trigger tg_slotlink_a after insert or update or delete
+    on HSlot for each row execute procedure tg_slotlink_a('HS');
+
+create trigger tg_slotlink_a after insert or update or delete
+    on PHone for each row execute procedure tg_slotlink_a('PH');
 
 
 -- ************************************************************
@@ -1266,22 +1245,24 @@ insert into PSlot values ('PS.base.c6', 'PF0_1', '', 'WS.003.3b');
 --
 -- This patchfield will be renamed later into PF0_2 - so its
 -- slots references in pfname should follow
+-- TODO(jason): the below `PF0_2` are renamed from the original `PF0_X` because
+-- of issue #1611
 --
-insert into PField values ('PF0_X', 'Phonelines basement');
+insert into PField values ('PF0_2', 'Phonelines basement');
 
-insert into PSlot values ('PS.base.ta1', 'PF0_X', '', '');
-insert into PSlot values ('PS.base.ta2', 'PF0_X', '', '');
-insert into PSlot values ('PS.base.ta3', 'PF0_X', '', '');
-insert into PSlot values ('PS.base.ta4', 'PF0_X', '', '');
-insert into PSlot values ('PS.base.ta5', 'PF0_X', '', '');
-insert into PSlot values ('PS.base.ta6', 'PF0_X', '', '');
+insert into PSlot values ('PS.base.ta1', 'PF0_2', '', '');
+insert into PSlot values ('PS.base.ta2', 'PF0_2', '', '');
+insert into PSlot values ('PS.base.ta3', 'PF0_2', '', '');
+insert into PSlot values ('PS.base.ta4', 'PF0_2', '', '');
+insert into PSlot values ('PS.base.ta5', 'PF0_2', '', '');
+insert into PSlot values ('PS.base.ta6', 'PF0_2', '', '');
 
-insert into PSlot values ('PS.base.tb1', 'PF0_X', '', '');
-insert into PSlot values ('PS.base.tb2', 'PF0_X', '', '');
-insert into PSlot values ('PS.base.tb3', 'PF0_X', '', '');
-insert into PSlot values ('PS.base.tb4', 'PF0_X', '', '');
-insert into PSlot values ('PS.base.tb5', 'PF0_X', '', '');
-insert into PSlot values ('PS.base.tb6', 'PF0_X', '', '');
+insert into PSlot values ('PS.base.tb1', 'PF0_2', '', '');
+insert into PSlot values ('PS.base.tb2', 'PF0_2', '', '');
+insert into PSlot values ('PS.base.tb3', 'PF0_2', '', '');
+insert into PSlot values ('PS.base.tb4', 'PF0_2', '', '');
+insert into PSlot values ('PS.base.tb5', 'PF0_2', '', '');
+insert into PSlot values ('PS.base.tb6', 'PF0_2', '', '');
 
 insert into PField values ('PF1_1', 'Wallslots first floor');
 
@@ -1364,7 +1345,8 @@ insert into PSlot values ('PS.first.tb6', 'PF1_2', '', '');
 --
 -- Fix the wrong name for patchfield PF0_2
 --
-update PField set name = 'PF0_2' where name = 'PF0_X';
+-- TODO(jason): uncomment after resolving #1611
+--update PField set name = 'PF0_2' where name = 'PF0_X';
 
 select * from PSlot order by slotname;
 select * from WSlot order by slotname;
