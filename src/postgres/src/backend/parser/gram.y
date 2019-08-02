@@ -934,7 +934,7 @@ stmt :
 			/* Not supported statements */
 			| AlterEventTrigStmt { parser_ybc_signal_unsupported(@1, "This statement", 1156); }
 			| AlterCollationStmt { parser_ybc_not_support(@1, "This statement"); }
-			| AlterEnumStmt { parser_ybc_signal_unsupported(@1, "This statement", 1152); }
+			| AlterEnumStmt { parser_ybc_signal_unsupported(@1, "This statement", 1893); }
 			| AlterExtensionStmt { parser_ybc_signal_unsupported(@1, "This statement", 1154); }
 			| AlterExtensionContentsStmt { parser_ybc_signal_unsupported(@1, "This statement", 1154); }
 			| AlterFdwStmt { parser_ybc_not_support(@1, "This statement"); }
@@ -3016,7 +3016,7 @@ PartitionRangeDatum:
 AlterCompositeTypeStmt:
 			ALTER TYPE_P any_name alter_type_cmds
 				{
-					parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1152);
+					parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1893);
 					AlterTableStmt *n = makeNode(AlterTableStmt);
 
 					/* can't use qualified_name, sigh */
@@ -3036,7 +3036,7 @@ alter_type_cmd:
 			/* ALTER TYPE <name> ADD ATTRIBUTE <coldef> [RESTRICT|CASCADE] */
 			ADD_P ATTRIBUTE TableFuncElement opt_drop_behavior
 				{
-					parser_ybc_signal_unsupported(@1, "ALTER TYPE ADD ATTRIBUTE", 1152);
+					parser_ybc_signal_unsupported(@1, "ALTER TYPE ADD ATTRIBUTE", 1893);
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_AddColumn;
 					n->def = $3;
@@ -3046,7 +3046,7 @@ alter_type_cmd:
 			/* ALTER TYPE <name> DROP ATTRIBUTE IF EXISTS <attname> [RESTRICT|CASCADE] */
 			| DROP ATTRIBUTE IF_P EXISTS ColId opt_drop_behavior
 				{
-					parser_ybc_signal_unsupported(@1, "ALTER TYPE DROP ATTRIBUTE", 1152);
+					parser_ybc_signal_unsupported(@1, "ALTER TYPE DROP ATTRIBUTE", 1893);
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_DropColumn;
 					n->name = $5;
@@ -3057,7 +3057,7 @@ alter_type_cmd:
 			/* ALTER TYPE <name> DROP ATTRIBUTE <attname> [RESTRICT|CASCADE] */
 			| DROP ATTRIBUTE ColId opt_drop_behavior
 				{
-					parser_ybc_signal_unsupported(@1, "ALTER TYPE DROP ATTRIBUTE", 1152);
+					parser_ybc_signal_unsupported(@1, "ALTER TYPE DROP ATTRIBUTE", 1893);
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_DropColumn;
 					n->name = $3;
@@ -3068,7 +3068,7 @@ alter_type_cmd:
 			/* ALTER TYPE <name> ALTER ATTRIBUTE <attname> [SET DATA] TYPE <typename> [RESTRICT|CASCADE] */
 			| ALTER ATTRIBUTE ColId opt_set_data TYPE_P Typename opt_collate_clause opt_drop_behavior
 				{
-					parser_ybc_signal_unsupported(@1, "ALTER TYPE ALTER ATTRIBUTE", 1152);
+					parser_ybc_signal_unsupported(@1, "ALTER TYPE ALTER ATTRIBUTE", 1893);
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					ColumnDef *def = makeNode(ColumnDef);
 					n->subtype = AT_AlterColumnType;
@@ -6306,7 +6306,7 @@ enum_val_list:	Sconst
 AlterEnumStmt:
 		ALTER TYPE_P any_name ADD_P VALUE_P opt_if_not_exists Sconst
 			{
-				parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1152);
+				parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1893);
 				AlterEnumStmt *n = makeNode(AlterEnumStmt);
 				n->typeName = $3;
 				n->oldVal = NULL;
@@ -6318,7 +6318,7 @@ AlterEnumStmt:
 			}
 		 | ALTER TYPE_P any_name ADD_P VALUE_P opt_if_not_exists Sconst BEFORE Sconst
 			{
-				parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1152);
+				parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1893);
 				AlterEnumStmt *n = makeNode(AlterEnumStmt);
 				n->typeName = $3;
 				n->oldVal = NULL;
@@ -6330,7 +6330,7 @@ AlterEnumStmt:
 			}
 		 | ALTER TYPE_P any_name ADD_P VALUE_P opt_if_not_exists Sconst AFTER Sconst
 			{
-				parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1152);
+				parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1893);
 				AlterEnumStmt *n = makeNode(AlterEnumStmt);
 				n->typeName = $3;
 				n->oldVal = NULL;
@@ -6342,7 +6342,7 @@ AlterEnumStmt:
 			}
 		 | ALTER TYPE_P any_name RENAME VALUE_P Sconst TO Sconst
 			{
-				parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1152);
+				parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1893);
 				AlterEnumStmt *n = makeNode(AlterEnumStmt);
 				n->typeName = $3;
 				n->oldVal = $6;
@@ -9580,7 +9580,7 @@ RenameStmt: ALTER AGGREGATE aggregate_with_argtypes RENAME TO name
 				}
 			| ALTER TYPE_P any_name RENAME TO name
 				{
-					parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1152);
+					parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1893);
 					RenameStmt *n = makeNode(RenameStmt);
 					n->renameType = OBJECT_TYPE;
 					n->object = (Node *) $3;
@@ -9590,7 +9590,7 @@ RenameStmt: ALTER AGGREGATE aggregate_with_argtypes RENAME TO name
 				}
 			| ALTER TYPE_P any_name RENAME ATTRIBUTE name TO name opt_drop_behavior
 				{
-					parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1152);
+					parser_ybc_signal_unsupported(@1, "ALTER TYPE", 1893);
 					RenameStmt *n = makeNode(RenameStmt);
 					n->renameType = OBJECT_ATTRIBUTE;
 					n->relationType = OBJECT_TYPE;
@@ -9944,7 +9944,7 @@ AlterObjectSchemaStmt:
 				}
 			| ALTER TYPE_P any_name SET SCHEMA name
 				{
-					parser_ybc_signal_unsupported(@1, "ALTER TYPE SET SCHEMA", 1152);
+					parser_ybc_signal_unsupported(@1, "ALTER TYPE SET SCHEMA", 1893);
 					AlterObjectSchemaStmt *n = makeNode(AlterObjectSchemaStmt);
 					n->objectType = OBJECT_TYPE;
 					n->object = (Node *) $3;
