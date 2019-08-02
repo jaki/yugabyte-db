@@ -125,35 +125,37 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 	const YBCPgTypeEntity *type_entity = YBCPgFindTypeEntity(type_id);
 	YBCPgDataType yb_type = YBCPgGetType(type_entity);
 
-	/* Find the basetype if the actual type does not have any entry */
+	/* For non-primitive types, we need to look up the definition */
 	if (yb_type == YB_YQL_DATA_TYPE_UNKNOWN_DATA) {
 		HeapTuple type = typeidType(type_id);
 		Form_pg_type tp = (Form_pg_type) GETSTRUCT(type);
 		Oid basetp_oid = tp->typbasetype;
 		ReleaseSysCache(type);
 
-		/*
-		 * TODO(jj-kim): change BYTEAARRAYOID to BYTEAOID when index on user-defined types is
-		 * supported
-		 */
 		switch (tp->typtype) {
 			case TYPTYPE_BASE:
 				if (tp->typlen < 0) {
 					/* Variable length base type */
-					basetp_oid = BYTEAARRAYOID;
+					basetp_oid = VAR_LEN_UDTOID;
 				} else {
 					/* fixed length base type */
-					basetp_oid = OIDOID;
+					basetp_oid = FIXED_LEN_UDTOID;
 				}
 				break;
 			case TYPTYPE_COMPOSITE:
-			case TYPTYPE_RANGE:
-				basetp_oid = BYTEAARRAYOID;
+				basetp_oid = RECORDOID;
 				break;
 			case TYPTYPE_DOMAIN:
 				break;
 			case TYPTYPE_ENUM:
-				basetp_oid = OIDOID;
+				/*
+				 * TODO(jason): change `FIXED_LEN_UDTOID` to `ANYENUMOID` once user-defined enums as
+				 * primary keys is supported
+				 */
+				basetp_oid = FIXED_LEN_UDTOID;
+				break;
+			case TYPTYPE_RANGE:
+				basetp_oid = ANYRANGEOID;
 				break;
 			default:
 				YB_REPORT_TYPE_NOT_SUPPORTED(type_id);
@@ -1221,6 +1223,22 @@ static const YBCPgTypeEntity YBCTypeEntityTable[] = {
 	{ ANYRANGEOID, YB_YQL_DATA_TYPE_BINARY, false, -1,
 		(YBCPgDatumToData)YBCDatumToDocdb,
 		(YBCPgDatumFromData)YBCDocdbToDatum },
+
+	{ FIXED_LEN_UDTOID, YB_YQL_DATA_TYPE_UINT32, false, sizeof(int32),
+		(YBCPgDatumToData)YBCDatumToInt32,
+		(YBCPgDatumFromData)YBCInt32ToDatum },
+
+	{ FIXED_LEN_UDTARRAYOID, YB_YQL_DATA_TYPE_BINARY, false, -1,
+		(YBCPgDatumToData)YBCDatumToBinary,
+		(YBCPgDatumFromData)YBCBinaryToDatum },
+
+	{ VAR_LEN_UDTOID, YB_YQL_DATA_TYPE_BINARY, false, -1,
+		(YBCPgDatumToData)YBCDatumToDocdb,
+		(YBCPgDatumFromData)YBCDocdbToDatum },
+
+	{ VAR_LEN_UDTARRAYOID, YB_YQL_DATA_TYPE_BINARY, false, -1,
+		(YBCPgDatumToData)YBCDatumToBinary,
+		(YBCPgDatumFromData)YBCBinaryToDatum },
 };
 
 void YBCGetTypeTable(const YBCPgTypeEntity **type_table, int *count) {
