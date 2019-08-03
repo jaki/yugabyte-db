@@ -8,7 +8,7 @@ test: yb_create_table
 test: yb_pg_create_function_1
 test: yb_pg_create_function_2
 test: yb_pg_create_function_3
-test: yb_plpgsql
+test: yb_pg_plpgsql
 test: yb_pg_triggers
 test: yb_triggers
 test: yb_extensions
