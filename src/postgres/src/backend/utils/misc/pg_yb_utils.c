@@ -479,6 +479,10 @@ YBPgTypeOidToStr(Oid type_id) {
 		case INDEX_AM_HANDLEROID: return "INDEX_AM_HANDLER";
 		case TSM_HANDLEROID: return "TSM_HANDLER";
 		case ANYRANGEOID: return "ANYRANGE";
+		case FIXED_LEN_UDTOID: return "FIXED_LEN_UDT";
+		case FIXED_LEN_UDTARRAYOID: return "FIXED_LEN_UDTARRAY";
+		case VAR_LEN_UDTOID: return "VAR_LEN_UDT";
+		case VAR_LEN_UDTARRAYOID: return "VAR_LEN_UDTARRAY";
 		default: return "user_defined_type";
 	}
 }
