@@ -27,7 +27,7 @@ public class TestPgRegressTypesUDT extends BasePgSQLTest {
   }
 
   @Test
-  public void testPgRegressTypes() throws Exception {
+  public void testPgRegressTypesUDT() throws Exception {
     runPgRegressTest("yb_pg_types_udt_serial_schedule");
   }
 }
