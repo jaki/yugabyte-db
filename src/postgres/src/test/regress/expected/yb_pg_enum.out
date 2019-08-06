@@ -154,8 +154,8 @@ SET enable_bitmapscan = off;
 --
 -- LSM index / opclass with the various operators
 --
--- TODO(neil) Index Support
--- CREATE UNIQUE INDEX enumtest_lsm ON enumtest USING lsm (col);
+CREATE UNIQUE INDEX enumtest_lsm ON enumtest USING lsm (col);
+ERROR:  INDEX on column of type 'user_defined_type' not yet supported
 SELECT * FROM enumtest WHERE col = 'orange';
   col   
 --------
@@ -224,20 +224,22 @@ SELECT max(col) FROM enumtest WHERE col < 'green';
  yellow
 (1 row)
 
--- TODO(neil) Index Support
--- DROP INDEX enumtest_lsm;
+DROP INDEX enumtest_lsm;
+ERROR:  index "enumtest_lsm" does not exist
 --
 -- Hash index / opclass with the = operator
 --
--- CREATE INDEX enumtest_hash ON enumtest USING hash (col);
+CREATE INDEX enumtest_hash ON enumtest USING hash (col);
+NOTICE:  index method "hash" was replaced with "lsm" in YugaByte DB
+ERROR:  INDEX on column of type 'user_defined_type' not yet supported
 SELECT * FROM enumtest WHERE col = 'orange';
   col   
 --------
  orange
 (1 row)
 
--- TODO(neil) Index Support
--- DROP INDEX enumtest_hash;
+DROP INDEX enumtest_hash;
+ERROR:  index "enumtest_hash" does not exist
 --
 -- End index tests
 --
