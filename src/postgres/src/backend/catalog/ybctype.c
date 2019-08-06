@@ -102,6 +102,7 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 				break;
 			case MinCommandIdAttributeNumber: /* cmin */
 			case MaxCommandIdAttributeNumber: /* cmax */
+			case YBFixedLenUDT:               /* fixed length udt */
 				type_id = CIDOID;
 				break;
 			case MinTransactionIdAttributeNumber: /* xmin */
@@ -112,6 +113,9 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 			case YBIdxBaseTupleIdAttributeNumber:     /* ybidxbasectid */
 			case YBUniqueIdxKeySuffixAttributeNumber: /* ybuniqueidxkeysuffix */
 				type_id = BYTEAOID;
+				break;
+			case YBVarLenUDT:                         /* variable length udt */
+				type_id = BYTEAARRAYOID;
 				break;
 			default:
 				ereport(ERROR,
@@ -136,10 +140,10 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 			case TYPTYPE_BASE:
 				if (tp->typlen < 0) {
 					/* Variable length base type */
-					basetp_oid = VAR_LEN_UDTOID;
+					return YBCDataTypeFromOidMod(YBVarLenUDT, -1);
 				} else {
 					/* fixed length base type */
-					basetp_oid = FIXED_LEN_UDTOID;
+					return YBCDataTypeFromOidMod(YBFixedLenUDT, -1);
 				}
 				break;
 			case TYPTYPE_COMPOSITE:
@@ -149,10 +153,11 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 				break;
 			case TYPTYPE_ENUM:
 				/*
-				 * TODO(jason): change `FIXED_LEN_UDTOID` to `ANYENUMOID` once user-defined enums as
-				 * primary keys is supported
+				 * TODO(jason): use the following line instead once user-defined enums can be
+				 * primary keys:
+				 *   basetp_oid = ANYENUMOID;
 				 */
-				basetp_oid = FIXED_LEN_UDTOID;
+				return YBCDataTypeFromOidMod(YBFixedLenUDT, -1);
 				break;
 			case TYPTYPE_RANGE:
 				basetp_oid = ANYRANGEOID;
@@ -1223,22 +1228,6 @@ static const YBCPgTypeEntity YBCTypeEntityTable[] = {
 	{ ANYRANGEOID, YB_YQL_DATA_TYPE_BINARY, false, -1,
 		(YBCPgDatumToData)YBCDatumToDocdb,
 		(YBCPgDatumFromData)YBCDocdbToDatum },
-
-	{ FIXED_LEN_UDTOID, YB_YQL_DATA_TYPE_UINT32, false, sizeof(int32),
-		(YBCPgDatumToData)YBCDatumToInt32,
-		(YBCPgDatumFromData)YBCInt32ToDatum },
-
-	{ FIXED_LEN_UDTARRAYOID, YB_YQL_DATA_TYPE_BINARY, false, -1,
-		(YBCPgDatumToData)YBCDatumToBinary,
-		(YBCPgDatumFromData)YBCBinaryToDatum },
-
-	{ VAR_LEN_UDTOID, YB_YQL_DATA_TYPE_BINARY, false, -1,
-		(YBCPgDatumToData)YBCDatumToDocdb,
-		(YBCPgDatumFromData)YBCDocdbToDatum },
-
-	{ VAR_LEN_UDTARRAYOID, YB_YQL_DATA_TYPE_BINARY, false, -1,
-		(YBCPgDatumToData)YBCDatumToBinary,
-		(YBCPgDatumFromData)YBCBinaryToDatum },
 };
 
 void YBCGetTypeTable(const YBCPgTypeEntity **type_table, int *count) {

@@ -42,5 +42,7 @@
 #define YBIdxBaseTupleIdAttributeNumber			(-101)
 #define YBUniqueIdxKeySuffixAttributeNumber		(-102)
 #define YBSystemFirstLowInvalidAttributeNumber	(-103)
+#define YBFixedLenUDT							(-104)
+#define YBVarLenUDT								(-105)
 
 #endif							/* SYSATTR_H */
