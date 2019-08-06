@@ -93,19 +93,20 @@ FROM (SELECT $$a$$ || x AS b,
       FROM generate_series(1,2) x,
            generate_series(4,5) y) q;
 
--- TODO(neil) Temp table is not yet supported
--- CREATE TEMP TABLE rows AS
-CREATE TABLE rows AS SELECT x, 'txt' || x as y FROM generate_series(1,3) AS x;
+CREATE TEMP TABLE rows AS
+SELECT x, 'txt' || x as y
+FROM generate_series(1,3) AS x;
 
-SELECT row_to_json(q,true) FROM rows q ORDER BY x;
+SELECT row_to_json(q,true)
+FROM rows q;
 
 SELECT row_to_json(row((select array_agg(x) as d from generate_series(5,10) x)),false);
 
 -- anyarray column
 
 select to_json(histogram_bounds) histogram_bounds
-  from pg_stats
-  where attname = 'tmplname' and tablename = 'pg_pltemplate';
+from pg_stats
+where attname = 'tmplname' and tablename = 'pg_pltemplate';
 
 -- to_json, timestamps
 
@@ -161,8 +162,10 @@ FROM (SELECT '{"a":1,"b": [2,3,4,"d","e","f"],"c":{"p":1,"q":2}}'::json AS "json
 
 -- json extraction functions
 
--- CREATE TEMP TABLE test_json (json_type text, test_json json);
-CREATE TABLE test_json (json_type text, test_json json);
+CREATE TEMP TABLE test_json (
+       json_type text,
+       test_json json
+);
 
 INSERT INTO test_json VALUES
 ('scalar','"a scalar"'),
