@@ -119,7 +119,7 @@ SELECT * FROM base_table ORDER BY CAST(a AS text);
 --
 -- Summary
 --
-SELECT typname FROM pg_type WHERE oid > 16000 ORDER BY oid;
+SELECT typname FROM pg_type WHERE oid > 16000 ORDER BY oid DESC LIMIT 16;
 
 --
 -- Drop composite type
@@ -187,4 +187,12 @@ SELECT * FROM base_table ORDER BY b;
 --
 -- Summary
 --
-SELECT typname FROM pg_type WHERE oid > 16000 ORDER BY oid;
+SELECT typname FROM pg_type WHERE oid > 16000 ORDER BY oid DESC LIMIT 8;
+
+--
+-- Cleanup
+--
+DROP TABLE composite_table;
+DROP TABLE enum_table;
+DROP TABLE range_table;
+DROP TABLE base_table;

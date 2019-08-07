@@ -77,3 +77,9 @@ CONTEXT:  PL/pgSQL function stricttest3() line 5 at SQL statement
 select stricttest4();
 ERROR:  query returned more than one row
 CONTEXT:  PL/pgSQL function stricttest4() line 5 at SQL statement
+--
+-- Cleanup
+--
+DROP TABLE foo;
+DROP TABLE bar;
+DROP FUNCTION stricttest1(), stricttest2(), stricttest3(), stricttest4();

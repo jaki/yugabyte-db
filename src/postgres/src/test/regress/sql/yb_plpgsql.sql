@@ -45,3 +45,9 @@ select stricttest2();
 
 select stricttest3();
 select stricttest4();
+--
+-- Cleanup
+--
+DROP TABLE foo;
+DROP TABLE bar;
+DROP FUNCTION stricttest1(), stricttest2(), stricttest3(), stricttest4();

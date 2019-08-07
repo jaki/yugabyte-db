@@ -1,7 +1,0 @@
-# src/test/regress/yb_types_serial_schedule
-#
-####################################################################################################
-# YB Types Testsuite: All things related to types that are not under the `yb_pg_foo` category.
-####################################################################################################
-test: yb_create_type
-test: yb_plpgsql

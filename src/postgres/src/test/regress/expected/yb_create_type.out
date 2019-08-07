@@ -239,25 +239,25 @@ SELECT * FROM base_table ORDER BY CAST(a AS text);
 --
 -- Summary
 --
-SELECT typname FROM pg_type WHERE oid > 16000 ORDER BY oid;
+SELECT typname FROM pg_type WHERE oid > 16000 ORDER BY oid DESC LIMIT 16;
      typname
 ------------------
- _composite_type
- composite_type
- _composite_table
- composite_table
- _enum_type
- enum_type
- _enum_table
- enum_table
- range_type
- _range_type
- _range_table
- range_table
- base_type
- _base_type
- _base_table
  base_table
+ _base_table
+ _base_type
+ base_type
+ range_table
+ _range_table
+ _range_type
+ range_type
+ enum_table
+ _enum_table
+ enum_type
+ _enum_type
+ composite_table
+ _composite_table
+ composite_type
+ _composite_type
 (16 rows)
 
 --
@@ -416,15 +416,23 @@ SELECT * FROM base_table ORDER BY b;
 --
 -- Summary
 --
-SELECT typname FROM pg_type WHERE oid > 16000 ORDER BY oid;
+SELECT typname FROM pg_type WHERE oid > 16000 ORDER BY oid DESC LIMIT 8;
      typname
 ------------------
- _composite_table
- composite_table
- _enum_table
- enum_table
- _range_table
- range_table
- _base_table
  base_table
+ _base_table
+ range_table
+ _range_table
+ enum_table
+ _enum_table
+ composite_table
+ _composite_table
 (8 rows)
+
+--
+-- Cleanup
+--
+DROP TABLE composite_table;
+DROP TABLE enum_table;
+DROP TABLE range_table;
+DROP TABLE base_table;
