@@ -124,9 +124,7 @@ UPDATE arrtest
   WHERE array_dims(c) is not null;
 
 -- test slices with empty lower and/or upper index
--- TODO(neil) TEMP not supported.
--- CREATE TEMP TABLE arrtest_s (
-CREATE TABLE arrtest_s (
+CREATE TEMP TABLE arrtest_s (
   id      int primary key,
   a       int2[],
   b       int2[][]
@@ -170,9 +168,7 @@ UPDATE point_tbl SET f1[3] = 10 WHERE f1::text = '(-10,-10)'::point::text RETURN
 --
 -- test array extension
 --
--- TODO(neil) TEMP not supported.
--- CREATE TEMP TABLE arrtest1 (i int[], t text[]);
-CREATE TABLE arrtest1 (i int[], t text[]);
+CREATE TEMP TABLE arrtest1 (i int[], t text[]);
 insert into arrtest1 values(array[1,2,null,4], array['one','two',null,'four']);
 select * from arrtest1;
 update arrtest1 set i[2] = 22, t[2] = 'twenty-two';
@@ -210,9 +206,7 @@ select * from arrtest1;
 --
 
 -- table creation and INSERTs
--- TODO(neil) TEMP not supported.
--- CREATE TEMP TABLE arrtest2 (i integer ARRAY[4], f float8[], n numeric[], t text[], d timestamp[]);
-CREATE TABLE arrtest2 (i integer ARRAY[4], f float8[], n numeric[], t text[], d timestamp[]);
+CREATE TEMP TABLE arrtest2 (i integer ARRAY[4], f float8[], n numeric[], t text[], d timestamp[]);
 INSERT INTO arrtest2 VALUES(
   ARRAY[[[113,142],[1,147]]],
   ARRAY[1.1,1.2,1.3]::float8[],
@@ -222,9 +216,7 @@ INSERT INTO arrtest2 VALUES(
 );
 
 -- some more test data
--- TODO(neil) TEMP not supported.
--- CREATE TEMP TABLE arrtest_f (f0 int, f1 text, f2 float8);
-CREATE TABLE arrtest_f (f0 int, f1 text, f2 float8);
+CREATE TEMP TABLE arrtest_f (f0 int, f1 text, f2 float8);
 insert into arrtest_f values(1,'cat1',1.21);
 insert into arrtest_f values(2,'cat1',1.24);
 insert into arrtest_f values(3,'cat1',1.18);
@@ -235,9 +227,7 @@ insert into arrtest_f values(7,'cat2',1.26);
 insert into arrtest_f values(8,'cat2',1.32);
 insert into arrtest_f values(9,'cat2',1.30);
 
--- TODO(neil) TEMP not supported.
--- CREATE TEMP TABLE arrtest_i (f0 int, f1 text, f2 int);
-CREATE TABLE arrtest_i (f0 int, f1 text, f2 int);
+CREATE TEMP TABLE arrtest_i (f0 int, f1 text, f2 int);
 insert into arrtest_i values(1,'cat1',21);
 insert into arrtest_i values(2,'cat1',24);
 insert into arrtest_i values(3,'cat1',18);
@@ -387,25 +377,23 @@ select 33 = all ('{33,null,33}');
 SELECT -1 != ALL(ARRAY(SELECT NULLIF(g.i, 900) FROM generate_series(1,1000) g(i)));
 
 -- test indexes on arrays
--- TODO(neil) TEMP & UNIQUE not supported.
--- create temp table arr_tbl (f1 int[] unique);
--- create table arr_tbl (f1 int[]);
--- insert into arr_tbl values ('{1,2,3}');
--- insert into arr_tbl values ('{1,2}');
+create temp table arr_tbl (f1 int[] unique);
+insert into arr_tbl values ('{1,2,3}');
+insert into arr_tbl values ('{1,2}');
 -- failure expected:
--- insert into arr_tbl values ('{1,2,3}');
--- insert into arr_tbl values ('{2,3,4}');
--- insert into arr_tbl values ('{1,5,3}');
--- insert into arr_tbl values ('{1,2,10}');
+insert into arr_tbl values ('{1,2,3}');
+insert into arr_tbl values ('{2,3,4}');
+insert into arr_tbl values ('{1,5,3}');
+insert into arr_tbl values ('{1,2,10}');
 
--- set enable_seqscan to off;
--- set enable_bitmapscan to off;
--- select * from arr_tbl where f1 > '{1,2,3}' and f1 <= '{1,5,3}';
--- select * from arr_tbl where f1 >= '{1,2,3}' and f1 < '{1,5,3}';
+set enable_seqscan to off;
+set enable_bitmapscan to off;
+select * from arr_tbl where f1 > '{1,2,3}' and f1 <= '{1,5,3}';
+select * from arr_tbl where f1 >= '{1,2,3}' and f1 < '{1,5,3}';
 
 -- test ON CONFLICT DO UPDATE with arrays
--- TODO(neil) TEMP not supported.
--- create temp table arr_pk_tbl (pk int4 primary key, f1 int[]);
+-- TODO(jason) Change the below to `create temp table` when issue #1999 is
+-- resolved.
 create table arr_pk_tbl (pk int4 primary key, f1 int[]);
 insert into arr_pk_tbl values (1, '{1,2,3}');
 insert into arr_pk_tbl values (1, '{3,4,5}') on conflict (pk)
@@ -461,9 +449,7 @@ select '[0:1]={1.1,2.2}'::float8[];
 -- all of the above should be accepted
 
 -- tests for array aggregates
--- TODO(neil) TEMP not supported.
--- CREATE TEMP TABLE arraggtest ( f1 INT[], f2 TEXT[][], f3 FLOAT[]);
-CREATE TABLE arraggtest ( f1 INT[], f2 TEXT[][], f3 FLOAT[]);
+CREATE TEMP TABLE arraggtest ( f1 INT[], f2 TEXT[][], f3 FLOAT[]);
 
 INSERT INTO arraggtest (f1, f2, f3) VALUES
 ('{1,2,3,4}','{{grey,red},{blue,blue}}','{1.6, 0.0}');
