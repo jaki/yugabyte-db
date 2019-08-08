@@ -82,6 +82,9 @@
 
 #include "pg_yb_utils.h"
 
+static const YBCPgTypeEntity YBCFixedLenTypeEntity;
+static const YBCPgTypeEntity YBCVarLenTypeEntity;
+
 /***************************************************************************************************
  * Find YugaByte storage type for each PostgreSQL datatype.
  * NOTE: Because YugaByte network buffer can be deleted after it is processed, Postgres layer must
@@ -102,7 +105,6 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 				break;
 			case MinCommandIdAttributeNumber: /* cmin */
 			case MaxCommandIdAttributeNumber: /* cmax */
-			case YBFixedLenUDT:               /* fixed length udt */
 				type_id = CIDOID;
 				break;
 			case MinTransactionIdAttributeNumber: /* xmin */
@@ -113,9 +115,6 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 			case YBIdxBaseTupleIdAttributeNumber:     /* ybidxbasectid */
 			case YBUniqueIdxKeySuffixAttributeNumber: /* ybuniqueidxkeysuffix */
 				type_id = BYTEAOID;
-				break;
-			case YBVarLenUDT:                         /* variable length udt */
-				type_id = BYTEAARRAYOID;
 				break;
 			default:
 				ereport(ERROR,
@@ -140,10 +139,10 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 			case TYPTYPE_BASE:
 				if (tp->typlen < 0) {
 					/* Variable length base type */
-					return YBCDataTypeFromOidMod(YBVarLenUDT, -1);
+					return &YBCVarLenTypeEntity;
 				} else {
 					/* fixed length base type */
-					return YBCDataTypeFromOidMod(YBFixedLenUDT, -1);
+					return &YBCFixedLenTypeEntity;
 				}
 				break;
 			case TYPTYPE_COMPOSITE:
@@ -157,7 +156,7 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 				 * primary keys:
 				 *   basetp_oid = ANYENUMOID;
 				 */
-				return YBCDataTypeFromOidMod(YBFixedLenUDT, -1);
+				return &YBCFixedLenTypeEntity;
 				break;
 			case TYPTYPE_RANGE:
 				basetp_oid = ANYRANGEOID;
@@ -1229,6 +1228,24 @@ static const YBCPgTypeEntity YBCTypeEntityTable[] = {
 		(YBCPgDatumToData)YBCDatumToDocdb,
 		(YBCPgDatumFromData)YBCDocdbToDatum },
 };
+
+/* Special type entity used for fixed-length user-defined types.
+ * TODO(jason): When user-defined types as primary keys are supported, change the below `false` to
+ * `true`.
+ */
+static const YBCPgTypeEntity YBCFixedLenTypeEntity =
+	{ OIDOID, YB_YQL_DATA_TYPE_UINT32, false, sizeof(Oid),
+		(YBCPgDatumToData)YBCDatumToOid,
+		(YBCPgDatumFromData)YBCOidToDatum };
+/* Special type entity used for variable-length user-defined types.
+ * TODO(jason): When user-defined types as primary keys are supported, change the below `false` to
+ * `true`.
+ */
+static const YBCPgTypeEntity YBCVarLenTypeEntity =
+	{ BYTEAOID, YB_YQL_DATA_TYPE_BINARY, false, -1,
+		(YBCPgDatumToData)YBCDatumToBinary,
+		(YBCPgDatumFromData)YBCBinaryToDatum };
+
 
 void YBCGetTypeTable(const YBCPgTypeEntity **type_table, int *count) {
 	*type_table = YBCTypeEntityTable;
