@@ -216,29 +216,18 @@ SELECT * FROM atestv2; -- fail
 SELECT * FROM atestv3; -- ok
 SELECT * FROM atestv0; -- fail
 
-RESET SESSION AUTHORIZATION;
-
-CREATE TABLE priv_int8_tbl(q1 int8, q2 int8, PRIMARY KEY (q1, q2));
-INSERT INTO priv_int8_tbl VALUES('  123   ','  456');
-INSERT INTO priv_int8_tbl VALUES('123   ','4567890123456789');
-INSERT INTO priv_int8_tbl VALUES('4567890123456789','123');
-INSERT INTO priv_int8_tbl VALUES(+4567890123456789,'4567890123456789');
-INSERT INTO priv_int8_tbl VALUES('+4567890123456789','-4567890123456789');
-
-SET SESSION AUTHORIZATION regress_priv_user4;
-
 -- Appendrels excluded by constraints failed to check permissions in 8.4-9.2.
 select * from
-  ((select a.q1 as x from priv_int8_tbl a offset 0)
+  ((select a.q1 as x from int8_tbl a offset 0)
    union all
-   (select b.q2 as x from priv_int8_tbl b offset 0)) ss
+   (select b.q2 as x from int8_tbl b offset 0)) ss
 where false;
 
 set constraint_exclusion = on;
 select * from
-  ((select a.q1 as x, random() from priv_int8_tbl a where q1 > 0)
+  ((select a.q1 as x, random() from int8_tbl a where q1 > 0)
    union all
-   (select b.q2 as x, random() from priv_int8_tbl b where q2 > 0)) ss
+   (select b.q2 as x, random() from int8_tbl b where q2 > 0)) ss
 where x < 0;
 reset constraint_exclusion;
 
@@ -461,13 +450,13 @@ SET SESSION AUTHORIZATION regress_priv_user1;
 GRANT USAGE ON LANGUAGE sql TO regress_priv_user2; -- fail
 CREATE FUNCTION priv_testfunc1(int) RETURNS int AS 'select 2 * $1;' LANGUAGE sql;
 CREATE FUNCTION priv_testfunc2(int) RETURNS int AS 'select 3 * $1;' LANGUAGE sql;
--- NOT SUPPORTED
---
--- IF THIS LINE CAUSES A FAILURE, THIS REGION MAY BE SUPPORTED
+-- TODO(jason): uncomment lines about `priv_testagg1` when issue #1981 is
+-- fixed.
 CREATE AGGREGATE priv_testagg1(int) (sfunc = int4pl, stype = int4);
---
 CREATE PROCEDURE priv_testproc1(int) AS 'select $1;' LANGUAGE sql;
 
+-- TODO(jason): edit the following two statements (diff get `privileges`) when
+-- issue #1981 is fixed.
 REVOKE ALL ON FUNCTION priv_testfunc1(int), priv_testfunc2(int) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION priv_testfunc1(int), priv_testfunc2(int) TO regress_priv_user2;
 REVOKE ALL ON FUNCTION priv_testproc1(int) FROM PUBLIC; -- fail, not a function
@@ -581,7 +570,8 @@ SET SESSION AUTHORIZATION regress_priv_user2;
 
 -- commands that should succeed
 
--- TODO(jason): uncomment when issue #1981 is fixed
+-- TODO(jason): uncomment lines about `priv_testagg1b` when issue #1981 is
+-- fixed.
 -- CREATE AGGREGATE priv_testagg1b(priv_testdomain1) (sfunc = int4_sum, stype = bigint);
 
 CREATE DOMAIN priv_testdomain2b AS priv_testdomain1;
@@ -622,6 +612,7 @@ CREATE TABLE test11b AS (SELECT 1::priv_testdomain1 AS a);
 REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
 
 \c -
+-- DROP AGGREGATE priv_testagg1b(priv_testdomain1);
 DROP DOMAIN priv_testdomain2b;
 
 -- NOT SUPPORTED
@@ -1019,11 +1010,8 @@ SELECT has_schema_privilege('regress_priv_user2', 'testns5', 'CREATE'); -- no
 SET ROLE regress_priv_user1;
 
 CREATE FUNCTION testns.foo() RETURNS int AS 'select 1' LANGUAGE sql;
--- NOT SUPPORTED
---
--- IF THIS LINE CAUSES A FAILURE, THIS REGION MAY BE SUPPORTED
+-- TODO(jason): uncomment lines about `testns.agg1` when issue #1981 is fixed.
 CREATE AGGREGATE testns.agg1(int) (sfunc = int4pl, stype = int4);
---
 CREATE PROCEDURE testns.bar() AS 'select 1' LANGUAGE sql;
 
 SELECT has_function_privilege('regress_priv_user2', 'testns.foo()', 'EXECUTE'); -- no
@@ -1099,11 +1087,9 @@ SELECT has_table_privilege('regress_priv_user1', 'testns.t1', 'SELECT'); -- fals
 SELECT has_table_privilege('regress_priv_user1', 'testns.t2', 'SELECT'); -- false
 
 CREATE FUNCTION testns.priv_testfunc(int) RETURNS int AS 'select 3 * $1;' LANGUAGE sql;
--- NOT SUPPORTED
---
--- IF THIS LINE CAUSES A FAILURE, THIS REGION MAY BE SUPPORTED
+-- TODO(jason): uncomment lines about `testns.priv_testagg` when issue #1981 is
+-- fixed.
 CREATE AGGREGATE testns.priv_testagg(int) (sfunc = int4pl, stype = int4);
---
 CREATE PROCEDURE testns.priv_testproc(int) AS 'select 3' LANGUAGE sql;
 
 SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testfunc(int)', 'EXECUTE'); -- true by default
@@ -1207,8 +1193,6 @@ DROP TABLE atest3;
 DROP TABLE atest4;
 DROP TABLE atest5;
 DROP TABLE atest6;
-
-DROP TABLE priv_int8_tbl;
 
 DROP SEQUENCE twoseq;
 DROP SEQUENCE fourseq;
