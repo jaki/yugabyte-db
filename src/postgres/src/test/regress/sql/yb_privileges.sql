@@ -76,6 +76,9 @@ INSERT INTO atest2 VALUES ('foo', true); -- fail
 INSERT INTO atest1 SELECT 1, b FROM atest1; -- ok
 UPDATE atest1 SET a = 1 WHERE a = 2; -- ok
 UPDATE atest2 SET col2 = NOT col2; -- fail
+-- TODO(jason): try uncommenting after issue #1199 is resolved.
+-- SELECT * FROM atest1 FOR UPDATE; -- ok
+-- SELECT * FROM atest2 FOR UPDATE; -- fail
 DELETE FROM atest2; -- fail
 TRUNCATE atest2; -- fail
 COPY atest2 FROM stdin; -- fail
@@ -97,6 +100,10 @@ INSERT INTO atest1 SELECT 1, b FROM atest1; -- fail
 UPDATE atest1 SET a = 1 WHERE a = 2; -- fail
 UPDATE atest2 SET col2 = NULL; -- ok
 UPDATE atest2 SET col2 = NOT col2; -- fails; requires SELECT on atest2
+UPDATE atest2 SET col2 = true FROM atest1 WHERE atest1.a = 5; -- ok
+-- TODO(jason): try uncommenting after issue #1199 is resolved.
+-- SELECT * FROM atest1 FOR UPDATE; -- fail
+-- SELECT * FROM atest2 FOR UPDATE; -- fail
 DELETE FROM atest2; -- fail
 TRUNCATE atest2; -- fail
 COPY atest2 FROM stdin; -- fail
@@ -311,6 +318,7 @@ COPY atest5 (two) FROM stdin; -- ok
 \.
 INSERT INTO atest5 (three) VALUES (4); -- fail
 INSERT INTO atest5 VALUES (5,5,5); -- fail
+UPDATE atest5 SET three = 10; -- ok
 UPDATE atest5 SET one = 8; -- fail
 UPDATE atest5 SET three = 5, one = 2; -- fail
 -- Check that column level privs are enforced in RETURNING
@@ -372,6 +380,7 @@ INSERT INTO t1 VALUES (3, 1, 3);
 
 SET SESSION AUTHORIZATION regress_priv_user2;
 INSERT INTO t1 (c1, c2) VALUES (1, 1); -- fail, but row not shown
+UPDATE t1 SET c2 = 1; -- fail, but row not shown
 INSERT INTO t1 (c1, c2) VALUES (null, null); -- fail, but see columns being inserted
 INSERT INTO t1 (c3) VALUES (null); -- fail, but see columns being inserted or have SELECT
 INSERT INTO t1 (c1) VALUES (5); -- fail, but see columns being inserted or have SELECT
@@ -515,31 +524,29 @@ RESET SESSION AUTHORIZATION;
 GRANT ALL ON FUNCTION int8(integer) TO PUBLIC;
 SET SESSION AUTHORIZATION regress_priv_user4;
 
--- NOT SUPPORTED
---
--- -- privileges on types
---
--- -- switch to superuser
--- \c -
---
--- IF THIS LINE CAUSES A FAILURE, THIS REGION MAY BE SUPPORTED
+-- privileges on types
+
+-- switch to superuser
+\c -
+
 CREATE TYPE priv_testtype1 AS (a int, b text);
--- REVOKE USAGE ON TYPE priv_testtype1 FROM PUBLIC;
--- GRANT USAGE ON TYPE priv_testtype1 TO regress_priv_user2;
--- GRANT USAGE ON TYPE _priv_testtype1 TO regress_priv_user2; -- fail
--- GRANT USAGE ON DOMAIN priv_testtype1 TO regress_priv_user2; -- fail
---
--- CREATE DOMAIN priv_testdomain1 AS int;
--- REVOKE USAGE on DOMAIN priv_testdomain1 FROM PUBLIC;
--- GRANT USAGE ON DOMAIN priv_testdomain1 TO regress_priv_user2;
--- GRANT USAGE ON TYPE priv_testdomain1 TO regress_priv_user2; -- ok
---
--- SET SESSION AUTHORIZATION regress_priv_user1;
---
+REVOKE USAGE ON TYPE priv_testtype1 FROM PUBLIC;
+GRANT USAGE ON TYPE priv_testtype1 TO regress_priv_user2;
+GRANT USAGE ON TYPE _priv_testtype1 TO regress_priv_user2; -- fail
+GRANT USAGE ON DOMAIN priv_testtype1 TO regress_priv_user2; -- fail
+
+CREATE DOMAIN priv_testdomain1 AS int;
+REVOKE USAGE on DOMAIN priv_testdomain1 FROM PUBLIC;
+GRANT USAGE ON DOMAIN priv_testdomain1 TO regress_priv_user2;
+GRANT USAGE ON TYPE priv_testdomain1 TO regress_priv_user2; -- ok
+
+SET SESSION AUTHORIZATION regress_priv_user1;
+
 -- -- commands that should fail
 --
--- CREATE DOMAIN priv_testdomain2a AS priv_testdomain1;
+-- CREATE AGGREGATE priv_testagg1a(priv_testdomain1) (sfunc = int4_sum, stype = bigint);
 --
+-- CREATE DOMAIN priv_testdomain2a AS priv_testdomain1;
 --
 -- CREATE DOMAIN priv_testdomain3a AS int;
 -- CREATE FUNCTION castfunc(int) RETURNS priv_testdomain3a AS $$ SELECT $1::priv_testdomain3a $$ LANGUAGE SQL;
@@ -559,23 +566,23 @@ CREATE TYPE priv_testtype1 AS (a int, b text);
 -- CREATE TABLE test9a (a int, b int);
 -- ALTER TABLE test9a ADD COLUMN c priv_testdomain1;
 -- ALTER TABLE test9a ALTER COLUMN b TYPE priv_testdomain1;
---
--- CREATE TYPE test7a AS (a int, b priv_testdomain1);
---
--- CREATE TYPE test8a AS (a int, b int);
+
+CREATE TYPE test7a AS (a int, b priv_testdomain1);
+
+CREATE TYPE test8a AS (a int, b int);
 -- ALTER TYPE test8a ADD ATTRIBUTE c priv_testdomain1;
 -- ALTER TYPE test8a ALTER ATTRIBUTE b TYPE priv_testdomain1;
 --
 -- CREATE TABLE test11a AS (SELECT 1::priv_testdomain1 AS a);
 --
 -- REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
---
-
-CREATE DOMAIN priv_testdomain1 AS int;
 
 SET SESSION AUTHORIZATION regress_priv_user2;
 
 -- commands that should succeed
+
+-- TODO(jason): uncomment when issue #1981 is fixed
+-- CREATE AGGREGATE priv_testagg1b(priv_testdomain1) (sfunc = int4_sum, stype = bigint);
 
 CREATE DOMAIN priv_testdomain2b AS priv_testdomain1;
 
@@ -594,6 +601,8 @@ CREATE CAST (priv_testdomain1 AS priv_testdomain3b) WITH FUNCTION castfunc(int);
 --
 
 CREATE TABLE test5b (a int, b priv_testdomain1);
+CREATE TABLE test6b OF priv_testtype1;
+CREATE TABLE test10b (a int[], b priv_testtype1[]);
 
 CREATE TABLE test9b (a int, b int);
 ALTER TABLE test9b ADD COLUMN c priv_testdomain1;
@@ -603,13 +612,14 @@ ALTER TABLE test9b ADD COLUMN c priv_testdomain1;
 -- ALTER TABLE test9b ALTER COLUMN b TYPE priv_testdomain1;
 -- IF THIS LINE CAUSES A FAILURE, THIS REGION MAY BE SUPPORTED
 CREATE TYPE test7b AS (a int, b priv_testdomain1);
---
--- CREATE TYPE test8b AS (a int, b int);
+
+CREATE TYPE test8b AS (a int, b int);
 -- ALTER TYPE test8b ADD ATTRIBUTE c priv_testdomain1;
 -- ALTER TYPE test8b ALTER ATTRIBUTE b TYPE priv_testdomain1;
---
 
 CREATE TABLE test11b AS (SELECT 1::priv_testdomain1 AS a);
+
+REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
 
 \c -
 DROP DOMAIN priv_testdomain2b;
@@ -623,13 +633,15 @@ DROP OPERATOR !! (NONE, priv_testdomain1);
 --
 
 DROP TABLE test5b;
+DROP TABLE test6b;
 DROP TABLE test9b;
+DROP TABLE test10b;
 
 -- NOT SUPPORTED
 --
 -- IF THIS LINE CAUSES A FAILURE, THIS REGION MAY BE SUPPORTED
 DROP TYPE test7b;
--- DROP TYPE test8b;
+DROP TYPE test8b;
 -- DROP CAST (priv_testdomain1 AS priv_testdomain3b);
 -- DROP FUNCTION castfunc(int) CASCADE;
 --
@@ -637,6 +649,7 @@ DROP TYPE test7b;
 DROP DOMAIN priv_testdomain3b;
 DROP TABLE test11b;
 
+DROP TYPE priv_testtype1; -- ok
 DROP DOMAIN priv_testdomain1; -- ok
 
 
@@ -791,6 +804,7 @@ SELECT has_table_privilege('regress_priv_user3', 'atest4', 'SELECT'); -- false
 
 SELECT has_table_privilege('regress_priv_user1', 'atest4', 'SELECT WITH GRANT OPTION'); -- true
 
+
 -- Admin options
 
 SET SESSION AUTHORIZATION regress_priv_user4;
@@ -816,6 +830,7 @@ DROP FUNCTION dogrant_fails();
 SET SESSION AUTHORIZATION regress_priv_user4;
 DROP FUNCTION dogrant_ok();
 REVOKE regress_priv_group2 FROM regress_priv_user5;
+
 
 -- has_sequence_privilege tests
 \c -
@@ -1055,6 +1070,7 @@ SELECT count(*)
 
 DROP SCHEMA testns CASCADE;
 DROP SCHEMA testns2 CASCADE;
+DROP SCHEMA testns3 CASCADE;
 DROP SCHEMA testns4 CASCADE;
 DROP SCHEMA testns5 CASCADE;
 
@@ -1110,10 +1126,10 @@ SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testfunc(int)',
 -- SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testagg(int)', 'EXECUTE'); -- true
 SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testproc(int)', 'EXECUTE'); -- true
 
-
 \set VERBOSITY terse \\ -- suppress cascade details
 DROP SCHEMA testns CASCADE;
 \set VERBOSITY default
+
 
 -- Change owner of the schema & and rename of new schema owner
 \c -
@@ -1140,6 +1156,7 @@ DROP SCHEMA testns CASCADE;
 
 DROP ROLE regress_schemauser1;
 DROP ROLE regress_schemauser_renamed;
+
 
 -- test that dependent privileges are revoked (or not) properly
 \c -
