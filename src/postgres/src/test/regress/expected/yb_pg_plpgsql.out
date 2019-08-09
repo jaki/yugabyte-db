@@ -2012,12 +2012,11 @@ begin
 	return x;
 end$$ language plpgsql;
 select trap_matching_test(50);
-ERROR:  relation "tenk1" does not exist
-LINE 1: select        unique1 from tenk1 where unique2 =
-                                   ^
-QUERY:  select        unique1 from tenk1 where unique2 =
-			(select unique2 from tenk1 b where ten = $1)
-CONTEXT:  PL/pgSQL function trap_matching_test(integer) line 9 at SQL statement
+ trap_matching_test 
+--------------------
+                  2
+(1 row)
+
 select trap_matching_test(0);
 NOTICE:  caught data_exception
  trap_matching_test
@@ -2033,12 +2032,12 @@ NOTICE:  caught data_exception
 (1 row)
 
 select trap_matching_test(1);
-ERROR:  relation "tenk1" does not exist
-LINE 1: select        unique1 from tenk1 where unique2 =
-                                   ^
-QUERY:  select        unique1 from tenk1 where unique2 =
-			(select unique2 from tenk1 b where ten = $1)
-CONTEXT:  PL/pgSQL function trap_matching_test(integer) line 9 at SQL statement
+NOTICE:  caught numeric_value_out_of_range or cardinality_violation
+ trap_matching_test 
+--------------------
+                 -2
+(1 row)
+
 create temp table foo (f1 int);
 create function subxact_rollback_semantics() returns int as $$
 declare x int;
@@ -2083,7 +2082,7 @@ end$$ language plpgsql;
 begin;
 set statement_timeout to 2000;
 select trap_timeout();
-NOTICE:  caught others?
+NOTICE:  nyeah nyeah, can't stop me
 ERROR:  end of function
 CONTEXT:  PL/pgSQL function trap_timeout() line 15 at RAISE
 rollback;
@@ -2679,11 +2678,11 @@ begin
   return x = y;
 end$$ language plpgsql;
 select multi_datum_use(42);
-ERROR:  relation "tenk1" does not exist
-LINE 1: select          unique1/p1, unique1/$1 from tenk1 group by u...
-                                                    ^
-QUERY:  select          unique1/p1, unique1/$1 from tenk1 group by unique1/p1
-CONTEXT:  PL/pgSQL function multi_datum_use(integer) line 6 at SQL statement
+ multi_datum_use 
+-----------------
+ t
+(1 row)
+
 --
 -- Test STRICT limiter in both planned and EXECUTE invocations.
 -- Note that a data-modifying query is quasi strict (disallow multi rows)

@@ -3,11 +3,15 @@
 ####################################################################################################
 # BETA features Testsuites: Used to test features protected by FLAGS_ysql_beta_features flag.
 ####################################################################################################
-# create_table is needed because create_function_2 depends on the tables it creates.
+# `create_table` is needed because `create_function_2`, `yb_copy`, and `yb_pg_plpgsql` depend on the
+# tables it creates.
 test: yb_create_table
 test: yb_pg_create_function_1
 test: yb_pg_create_function_2
 test: yb_pg_create_function_3
+# `yb_copy` is needed because `yb_pg_plpgsql` depends on the data that it puts into the table
+# `tenk1`.
+test: yb_copy
 test: yb_pg_plpgsql
 test: yb_plpgsql
 test: yb_pg_triggers
