@@ -47,8 +47,7 @@ CREATE TABLE tenk1 (
 	stringu1	name,
 	stringu2	name,
 	string4		name
-) WITH OIDS;
-ERROR:  OIDs are not supported for user tables.
+);
 CREATE TABLE tenk2 (
 	unique1 	int4,
 	unique2 	int4,
@@ -75,9 +74,9 @@ CREATE TABLE person (
 CREATE TABLE emp (
 	salary 		int4,
 	manager 	name
-) INHERITS (person) WITH OIDS;
+) INHERITS (person);
 ERROR:  INHERITS not supported yet
-LINE 4: ) INHERITS (person) WITH OIDS;
+LINE 4: ) INHERITS (person);
           ^
 HINT:  See https://github.com/YugaByte/yugabyte-db/issues/1129. Click '+' on the description to raise its priority
 CREATE TABLE student (
