@@ -14,3 +14,4 @@ test: yb_select
 test: yb_pg_identity
 test: yb_index_including
 test: yb_sequence
+test: yb_pg_case
