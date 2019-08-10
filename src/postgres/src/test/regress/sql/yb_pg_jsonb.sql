@@ -41,6 +41,12 @@ SELECT '{"abc":1,"def":2,"ghi":[3,4],"hij":{"klm":5,"nop":[6]}}'::jsonb; -- OK
 SELECT '{"abc":1:2}'::jsonb;		-- ERROR, colon in wrong spot
 SELECT '{"abc":1,3}'::jsonb;		-- ERROR, no value
 
+-- Recursion.
+SET max_stack_depth = '100kB';
+SELECT repeat('[', 10000)::jsonb;
+SELECT repeat('{"a":', 10000)::jsonb;
+RESET max_stack_depth;
+
 -- Miscellaneous stuff.
 SELECT 'true'::jsonb;			-- OK
 SELECT 'false'::jsonb;			-- OK
@@ -55,6 +61,13 @@ SELECT '    '::jsonb;			-- ERROR, no value
 
 -- make sure jsonb is passed through json generators without being escaped
 SELECT array_to_json(ARRAY [jsonb '{"a":1}', jsonb '{"b":[2,3]}']);
+
+-- TODO(jason): _try_ uncommenting when issue #1420 is closed or closing.
+-- -- anyarray column
+--
+-- select to_jsonb(histogram_bounds) histogram_bounds
+-- from pg_stats
+-- where attname = 'tmplname' and tablename = 'pg_pltemplate';
 
 -- to_jsonb, timestamps
 
@@ -76,8 +89,29 @@ select to_jsonb(timestamp '-Infinity');
 select to_jsonb(timestamptz 'Infinity');
 select to_jsonb(timestamptz '-Infinity');
 
+--jsonb_agg
+
+CREATE TEMP TABLE rows AS
+SELECT x, 'txt' || x as y
+FROM generate_series(1,3) AS x;
+
+SELECT jsonb_agg(q)
+  FROM ( SELECT $$a$$ || x AS b, y AS c,
+               ARRAY[ROW(x.*,ARRAY[1,2,3]),
+               ROW(y.*,ARRAY[4,5,6])] AS z
+         FROM generate_series(1,2) x,
+              generate_series(4,5) y) q;
+
+SELECT jsonb_agg(q ORDER BY x, y)
+  FROM rows q;
+
+UPDATE rows SET x = NULL WHERE x = 1;
+
+SELECT jsonb_agg(q ORDER BY x NULLS FIRST, y)
+  FROM rows q;
+
 -- jsonb extraction functions
-CREATE TABLE test_jsonb (
+CREATE TEMP TABLE test_jsonb (
        json_type text,
        test_json jsonb
 );
@@ -284,6 +318,10 @@ SELECT jsonb_build_array(VARIADIC '{{1,4},{2,5},{3,6}}'::int[][]); -- ok
 
 SELECT jsonb_build_object('a',1,'b',1.2,'c',true,'d',null,'e',json '{"x": 3, "y": [1,2,3]}');
 
+SELECT jsonb_build_object(
+       'a', jsonb_build_object('b',false,'c',99),
+       'd', jsonb_build_object('e',array[9,8,7]::int[],
+           'f', (select row_to_json(r) from ( select relkind, oid::regclass as name from pg_class where relname = 'pg_class') r)));
 SELECT jsonb_build_object('{a,b,c}'::text[]); -- error
 SELECT jsonb_build_object('{a,b,c}'::text[], '{d,e,f}'::text[]); -- error, key cannot be array
 SELECT jsonb_build_object('a', 'b', 'c'); -- error
@@ -319,7 +357,7 @@ SELECT jsonb_build_object('{1,2,3}'::int[], 3);
 SELECT jsonb_object_agg(1, NULL::jsonb);
 SELECT jsonb_object_agg(NULL, '{"a":1}');
 
-CREATE TABLE foo (serial_num int, name text, type text);
+CREATE TEMP TABLE foo (serial_num int, name text, type text);
 INSERT INTO foo VALUES (847001,'t15','GE1043');
 INSERT INTO foo VALUES (847002,'t16','GE1043');
 INSERT INTO foo VALUES (847003,'sub-alpha','GESS90');
@@ -510,6 +548,11 @@ select '{"c": 1}'::jsonb || '["a", "b"]';
 
 select '{}'::jsonb || '{"cq":"l", "b":"g", "fg":false}';
 
+select pg_column_size('{}'::jsonb || '{}'::jsonb) = pg_column_size('{}'::jsonb);
+select pg_column_size('{"aa":1}'::jsonb || '{"b":2}'::jsonb) = pg_column_size('{"aa":1, "b":2}'::jsonb);
+select pg_column_size('{"aa":1, "b":2}'::jsonb || '{}'::jsonb) = pg_column_size('{"aa":1, "b":2}'::jsonb);
+select pg_column_size('{}'::jsonb || '{"aa":1, "b":2}'::jsonb) = pg_column_size('{"aa":1, "b":2}'::jsonb);
+
 select jsonb_delete('{"a":1 , "b":2, "c":3}'::jsonb, 'a');
 select jsonb_delete('{"a":null , "b":2, "c":3}'::jsonb, 'a');
 select jsonb_delete('{"a":1 , "b":2, "c":3}'::jsonb, 'b');
@@ -520,6 +563,7 @@ select '{"a":null , "b":2, "c":3}'::jsonb - 'a';
 select '{"a":1 , "b":2, "c":3}'::jsonb - 'b';
 select '{"a":1 , "b":2, "c":3}'::jsonb - 'c';
 select '{"a":1 , "b":2, "c":3}'::jsonb - 'd';
+select pg_column_size('{"a":1 , "b":2, "c":3}'::jsonb - 'b') = pg_column_size('{"a":1, "b":2}'::jsonb);
 
 select '["a","b","c"]'::jsonb - 3;
 select '["a","b","c"]'::jsonb - 2;
@@ -625,6 +669,3 @@ select jsonb_insert('{"a": {"b": "value"}}', '{a, c}', '"new_value"', true);
 
 select jsonb_insert('{"a": {"b": "value"}}', '{a, b}', '"new_value"');
 select jsonb_insert('{"a": {"b": "value"}}', '{a, b}', '"new_value"', true);
-
-DROP TABLE TEST_JSONB;
-DROP TABLE FOO;
