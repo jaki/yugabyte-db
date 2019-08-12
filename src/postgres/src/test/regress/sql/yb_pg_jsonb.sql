@@ -502,6 +502,423 @@ SELECT * FROM jsonb_array_elements('[1,true,[1,[2,3]],null,{"f1":1,"f2":[7,8,9]}
 SELECT jsonb_array_elements_text('[1,true,[1,[2,3]],null,{"f1":1,"f2":[7,8,9]},false,"stringy"]');
 SELECT * FROM jsonb_array_elements_text('[1,true,[1,[2,3]],null,{"f1":1,"f2":[7,8,9]},false,"stringy"]') q;
 
+-- populate_record
+CREATE TYPE jbpop AS (a text, b int, c timestamp);
+
+CREATE DOMAIN jsb_int_not_null  AS int     NOT NULL;
+CREATE DOMAIN jsb_int_array_1d  AS int[]   CHECK(array_length(VALUE, 1) = 3);
+CREATE DOMAIN jsb_int_array_2d  AS int[][] CHECK(array_length(VALUE, 2) = 3);
+
+create type jb_unordered_pair as (x int, y int);
+create domain jb_ordered_pair as jb_unordered_pair check((value).x <= (value).y);
+
+CREATE TYPE jsbrec AS (
+	i	int,
+	ia	_int4,
+	ia1	int[],
+	ia2	int[][],
+	ia3	int[][][],
+	ia1d	jsb_int_array_1d,
+	ia2d	jsb_int_array_2d,
+	t	text,
+	ta	text[],
+	c	char(10),
+	ca	char(10)[],
+	ts	timestamp,
+	js	json,
+	jsb	jsonb,
+	jsa	json[],
+	rec	jbpop,
+	reca	jbpop[]
+);
+
+CREATE TYPE jsbrec_i_not_null AS (
+	i	jsb_int_not_null
+);
+
+SELECT * FROM jsonb_populate_record(NULL::jbpop,'{"a":"blurfl","x":43.2}') q;
+SELECT * FROM jsonb_populate_record(row('x',3,'2012-12-31 15:30:56')::jbpop,'{"a":"blurfl","x":43.2}') q;
+
+SELECT * FROM jsonb_populate_record(NULL::jbpop,'{"a":"blurfl","x":43.2}') q;
+SELECT * FROM jsonb_populate_record(row('x',3,'2012-12-31 15:30:56')::jbpop,'{"a":"blurfl","x":43.2}') q;
+
+SELECT * FROM jsonb_populate_record(NULL::jbpop,'{"a":[100,200,false],"x":43.2}') q;
+SELECT * FROM jsonb_populate_record(row('x',3,'2012-12-31 15:30:56')::jbpop,'{"a":[100,200,false],"x":43.2}') q;
+SELECT * FROM jsonb_populate_record(row('x',3,'2012-12-31 15:30:56')::jbpop,'{"c":[100,200,false],"x":43.2}') q;
+
+SELECT * FROM jsonb_populate_record(row('x',3,'2012-12-31 15:30:56')::jbpop, '{}') q;
+
+SELECT i FROM jsonb_populate_record(NULL::jsbrec_i_not_null, '{"x": 43.2}') q;
+SELECT i FROM jsonb_populate_record(NULL::jsbrec_i_not_null, '{"i": null}') q;
+SELECT i FROM jsonb_populate_record(NULL::jsbrec_i_not_null, '{"i": 12345}') q;
+
+SELECT ia FROM jsonb_populate_record(NULL::jsbrec, '{"ia": null}') q;
+SELECT ia FROM jsonb_populate_record(NULL::jsbrec, '{"ia": 123}') q;
+SELECT ia FROM jsonb_populate_record(NULL::jsbrec, '{"ia": [1, "2", null, 4]}') q;
+SELECT ia FROM jsonb_populate_record(NULL::jsbrec, '{"ia": [[1, 2], [3, 4]]}') q;
+SELECT ia FROM jsonb_populate_record(NULL::jsbrec, '{"ia": [[1], 2]}') q;
+SELECT ia FROM jsonb_populate_record(NULL::jsbrec, '{"ia": [[1], [2, 3]]}') q;
+SELECT ia FROM jsonb_populate_record(NULL::jsbrec, '{"ia": "{1,2,3}"}') q;
+
+SELECT ia1 FROM jsonb_populate_record(NULL::jsbrec, '{"ia1": null}') q;
+SELECT ia1 FROM jsonb_populate_record(NULL::jsbrec, '{"ia1": 123}') q;
+SELECT ia1 FROM jsonb_populate_record(NULL::jsbrec, '{"ia1": [1, "2", null, 4]}') q;
+SELECT ia1 FROM jsonb_populate_record(NULL::jsbrec, '{"ia1": [[1, 2, 3]]}') q;
+
+SELECT ia1d FROM jsonb_populate_record(NULL::jsbrec, '{"ia1d": null}') q;
+SELECT ia1d FROM jsonb_populate_record(NULL::jsbrec, '{"ia1d": 123}') q;
+SELECT ia1d FROM jsonb_populate_record(NULL::jsbrec, '{"ia1d": [1, "2", null, 4]}') q;
+SELECT ia1d FROM jsonb_populate_record(NULL::jsbrec, '{"ia1d": [1, "2", null]}') q;
+
+SELECT ia2 FROM jsonb_populate_record(NULL::jsbrec, '{"ia2": [1, "2", null, 4]}') q;
+SELECT ia2 FROM jsonb_populate_record(NULL::jsbrec, '{"ia2": [[1, 2], [null, 4]]}') q;
+SELECT ia2 FROM jsonb_populate_record(NULL::jsbrec, '{"ia2": [[], []]}') q;
+SELECT ia2 FROM jsonb_populate_record(NULL::jsbrec, '{"ia2": [[1, 2], [3]]}') q;
+SELECT ia2 FROM jsonb_populate_record(NULL::jsbrec, '{"ia2": [[1, 2], 3, 4]}') q;
+
+SELECT ia2d FROM jsonb_populate_record(NULL::jsbrec, '{"ia2d": [[1, "2"], [null, 4]]}') q;
+SELECT ia2d FROM jsonb_populate_record(NULL::jsbrec, '{"ia2d": [[1, "2", 3], [null, 5, 6]]}') q;
+
+SELECT ia3 FROM jsonb_populate_record(NULL::jsbrec, '{"ia3": [1, "2", null, 4]}') q;
+SELECT ia3 FROM jsonb_populate_record(NULL::jsbrec, '{"ia3": [[1, 2], [null, 4]]}') q;
+SELECT ia3 FROM jsonb_populate_record(NULL::jsbrec, '{"ia3": [ [[], []], [[], []], [[], []] ]}') q;
+SELECT ia3 FROM jsonb_populate_record(NULL::jsbrec, '{"ia3": [ [[1, 2]], [[3, 4]] ]}') q;
+SELECT ia3 FROM jsonb_populate_record(NULL::jsbrec, '{"ia3": [ [[1, 2], [3, 4]], [[5, 6], [7, 8]] ]}') q;
+SELECT ia3 FROM jsonb_populate_record(NULL::jsbrec, '{"ia3": [ [[1, 2], [3, 4]], [[5, 6], [7, 8], [9, 10]] ]}') q;
+
+SELECT ta FROM jsonb_populate_record(NULL::jsbrec, '{"ta": null}') q;
+SELECT ta FROM jsonb_populate_record(NULL::jsbrec, '{"ta": 123}') q;
+SELECT ta FROM jsonb_populate_record(NULL::jsbrec, '{"ta": [1, "2", null, 4]}') q;
+SELECT ta FROM jsonb_populate_record(NULL::jsbrec, '{"ta": [[1, 2, 3], {"k": "v"}]}') q;
+
+SELECT c FROM jsonb_populate_record(NULL::jsbrec, '{"c": null}') q;
+SELECT c FROM jsonb_populate_record(NULL::jsbrec, '{"c": "aaa"}') q;
+SELECT c FROM jsonb_populate_record(NULL::jsbrec, '{"c": "aaaaaaaaaa"}') q;
+SELECT c FROM jsonb_populate_record(NULL::jsbrec, '{"c": "aaaaaaaaaaaaa"}') q;
+
+SELECT ca FROM jsonb_populate_record(NULL::jsbrec, '{"ca": null}') q;
+SELECT ca FROM jsonb_populate_record(NULL::jsbrec, '{"ca": 123}') q;
+SELECT ca FROM jsonb_populate_record(NULL::jsbrec, '{"ca": [1, "2", null, 4]}') q;
+SELECT ca FROM jsonb_populate_record(NULL::jsbrec, '{"ca": ["aaaaaaaaaaaaaaaa"]}') q;
+SELECT ca FROM jsonb_populate_record(NULL::jsbrec, '{"ca": [[1, 2, 3], {"k": "v"}]}') q;
+
+SELECT js FROM jsonb_populate_record(NULL::jsbrec, '{"js": null}') q;
+SELECT js FROM jsonb_populate_record(NULL::jsbrec, '{"js": true}') q;
+SELECT js FROM jsonb_populate_record(NULL::jsbrec, '{"js": 123.45}') q;
+SELECT js FROM jsonb_populate_record(NULL::jsbrec, '{"js": "123.45"}') q;
+SELECT js FROM jsonb_populate_record(NULL::jsbrec, '{"js": "abc"}') q;
+SELECT js FROM jsonb_populate_record(NULL::jsbrec, '{"js": [123, "123", null, {"key": "value"}]}') q;
+SELECT js FROM jsonb_populate_record(NULL::jsbrec, '{"js": {"a": "bbb", "b": null, "c": 123.45}}') q;
+
+SELECT jsb FROM jsonb_populate_record(NULL::jsbrec, '{"jsb": null}') q;
+SELECT jsb FROM jsonb_populate_record(NULL::jsbrec, '{"jsb": true}') q;
+SELECT jsb FROM jsonb_populate_record(NULL::jsbrec, '{"jsb": 123.45}') q;
+SELECT jsb FROM jsonb_populate_record(NULL::jsbrec, '{"jsb": "123.45"}') q;
+SELECT jsb FROM jsonb_populate_record(NULL::jsbrec, '{"jsb": "abc"}') q;
+SELECT jsb FROM jsonb_populate_record(NULL::jsbrec, '{"jsb": [123, "123", null, {"key": "value"}]}') q;
+SELECT jsb FROM jsonb_populate_record(NULL::jsbrec, '{"jsb": {"a": "bbb", "b": null, "c": 123.45}}') q;
+
+SELECT jsa FROM jsonb_populate_record(NULL::jsbrec, '{"jsa": null}') q;
+SELECT jsa FROM jsonb_populate_record(NULL::jsbrec, '{"jsa": 123}') q;
+SELECT jsa FROM jsonb_populate_record(NULL::jsbrec, '{"jsa": [1, "2", null, 4]}') q;
+SELECT jsa FROM jsonb_populate_record(NULL::jsbrec, '{"jsa": ["aaa", null, [1, 2, "3", {}], { "k" : "v" }]}') q;
+
+SELECT rec FROM jsonb_populate_record(NULL::jsbrec, '{"rec": 123}') q;
+SELECT rec FROM jsonb_populate_record(NULL::jsbrec, '{"rec": [1, 2]}') q;
+SELECT rec FROM jsonb_populate_record(NULL::jsbrec, '{"rec": {"a": "abc", "c": "01.02.2003", "x": 43.2}}') q;
+SELECT rec FROM jsonb_populate_record(NULL::jsbrec, '{"rec": "(abc,42,01.02.2003)"}') q;
+
+SELECT reca FROM jsonb_populate_record(NULL::jsbrec, '{"reca": 123}') q;
+SELECT reca FROM jsonb_populate_record(NULL::jsbrec, '{"reca": [1, 2]}') q;
+SELECT reca FROM jsonb_populate_record(NULL::jsbrec, '{"reca": [{"a": "abc", "b": 456}, null, {"c": "01.02.2003", "x": 43.2}]}') q;
+SELECT reca FROM jsonb_populate_record(NULL::jsbrec, '{"reca": ["(abc,42,01.02.2003)"]}') q;
+SELECT reca FROM jsonb_populate_record(NULL::jsbrec, '{"reca": "{\"(abc,42,01.02.2003)\"}"}') q;
+
+SELECT rec FROM jsonb_populate_record(
+	row(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+		row('x',3,'2012-12-31 15:30:56')::jbpop,NULL)::jsbrec,
+	'{"rec": {"a": "abc", "c": "01.02.2003", "x": 43.2}}'
+) q;
+
+-- anonymous record type
+SELECT jsonb_populate_record(null::record, '{"x": 0, "y": 1}');
+SELECT jsonb_populate_record(row(1,2), '{"f1": 0, "f2": 1}');
+
+-- composite domain
+SELECT jsonb_populate_record(null::jb_ordered_pair, '{"x": 0, "y": 1}');
+SELECT jsonb_populate_record(row(1,2)::jb_ordered_pair, '{"x": 0}');
+SELECT jsonb_populate_record(row(1,2)::jb_ordered_pair, '{"x": 1, "y": 0}');
+
+-- populate_recordset
+SELECT * FROM jsonb_populate_recordset(NULL::jbpop,'[{"a":"blurfl","x":43.2},{"b":3,"c":"2012-01-20 10:42:53"}]') q;
+SELECT * FROM jsonb_populate_recordset(row('def',99,NULL)::jbpop,'[{"a":"blurfl","x":43.2},{"b":3,"c":"2012-01-20 10:42:53"}]') q;
+SELECT * FROM jsonb_populate_recordset(NULL::jbpop,'[{"a":"blurfl","x":43.2},{"b":3,"c":"2012-01-20 10:42:53"}]') q;
+SELECT * FROM jsonb_populate_recordset(row('def',99,NULL)::jbpop,'[{"a":"blurfl","x":43.2},{"b":3,"c":"2012-01-20 10:42:53"}]') q;
+SELECT * FROM jsonb_populate_recordset(row('def',99,NULL)::jbpop,'[{"a":[100,200,300],"x":43.2},{"a":{"z":true},"b":3,"c":"2012-01-20 10:42:53"}]') q;
+SELECT * FROM jsonb_populate_recordset(row('def',99,NULL)::jbpop,'[{"c":[100,200,300],"x":43.2},{"a":{"z":true},"b":3,"c":"2012-01-20 10:42:53"}]') q;
+
+SELECT * FROM jsonb_populate_recordset(NULL::jbpop,'[{"a":"blurfl","x":43.2},{"b":3,"c":"2012-01-20 10:42:53"}]') q;
+SELECT * FROM jsonb_populate_recordset(row('def',99,NULL)::jbpop,'[{"a":"blurfl","x":43.2},{"b":3,"c":"2012-01-20 10:42:53"}]') q;
+SELECT * FROM jsonb_populate_recordset(row('def',99,NULL)::jbpop,'[{"a":[100,200,300],"x":43.2},{"a":{"z":true},"b":3,"c":"2012-01-20 10:42:53"}]') q;
+
+-- anonymous record type
+SELECT jsonb_populate_recordset(null::record, '[{"x": 0, "y": 1}]');
+SELECT jsonb_populate_recordset(row(1,2), '[{"f1": 0, "f2": 1}]');
+SELECT i, jsonb_populate_recordset(row(i,50), '[{"f1":"42"},{"f2":"43"}]')
+FROM (VALUES (1),(2)) v(i);
+
+-- empty array is a corner case
+SELECT jsonb_populate_recordset(null::record, '[]');
+SELECT jsonb_populate_recordset(row(1,2), '[]');
+SELECT * FROM jsonb_populate_recordset(NULL::jbpop,'[]') q;
+
+-- composite domain
+SELECT jsonb_populate_recordset(null::jb_ordered_pair, '[{"x": 0, "y": 1}]');
+SELECT jsonb_populate_recordset(row(1,2)::jb_ordered_pair, '[{"x": 0}, {"y": 3}]');
+SELECT jsonb_populate_recordset(row(1,2)::jb_ordered_pair, '[{"x": 1, "y": 0}]');
+
+-- negative cases where the wrong record type is supplied
+select * from jsonb_populate_recordset(row(0::int),'[{"a":"1","b":"2"},{"a":"3"}]') q (a text, b text);
+select * from jsonb_populate_recordset(row(0::int,0::int),'[{"a":"1","b":"2"},{"a":"3"}]') q (a text, b text);
+select * from jsonb_populate_recordset(row(0::int,0::int,0::int),'[{"a":"1","b":"2"},{"a":"3"}]') q (a text, b text);
+select * from jsonb_populate_recordset(row(1000000000::int,50::int),'[{"b":"2"},{"a":"3"}]') q (a text, b text);
+
+-- jsonb_to_record and jsonb_to_recordset
+
+select * from jsonb_to_record('{"a":1,"b":"foo","c":"bar"}')
+    as x(a int, b text, d text);
+
+select * from jsonb_to_recordset('[{"a":1,"b":"foo","d":false},{"a":2,"b":"bar","c":true}]')
+    as x(a int, b text, c boolean);
+
+select *, c is null as c_is_null
+from jsonb_to_record('{"a":1, "b":{"c":16, "d":2}, "x":8, "ca": ["1 2", 3], "ia": [[1,2],[3,4]], "r": {"a": "aaa", "b": 123}}'::jsonb)
+    as t(a int, b jsonb, c text, x int, ca char(5)[], ia int[][], r jbpop);
+
+select *, c is null as c_is_null
+from jsonb_to_recordset('[{"a":1, "b":{"c":16, "d":2}, "x":8}]'::jsonb)
+    as t(a int, b jsonb, c text, x int);
+
+select * from jsonb_to_record('{"ia": null}') as x(ia _int4);
+select * from jsonb_to_record('{"ia": 123}') as x(ia _int4);
+select * from jsonb_to_record('{"ia": [1, "2", null, 4]}') as x(ia _int4);
+select * from jsonb_to_record('{"ia": [[1, 2], [3, 4]]}') as x(ia _int4);
+select * from jsonb_to_record('{"ia": [[1], 2]}') as x(ia _int4);
+select * from jsonb_to_record('{"ia": [[1], [2, 3]]}') as x(ia _int4);
+
+select * from jsonb_to_record('{"ia2": [1, 2, 3]}') as x(ia2 int[][]);
+select * from jsonb_to_record('{"ia2": [[1, 2], [3, 4]]}') as x(ia2 int4[][]);
+select * from jsonb_to_record('{"ia2": [[[1], [2], [3]]]}') as x(ia2 int4[][]);
+
+-- test type info caching in jsonb_populate_record()
+CREATE TEMP TABLE jsbpoptest (js jsonb);
+
+INSERT INTO jsbpoptest
+SELECT '{
+	"jsa": [1, "2", null, 4],
+	"rec": {"a": "abc", "c": "01.02.2003", "x": 43.2},
+	"reca": [{"a": "abc", "b": 456}, null, {"c": "01.02.2003", "x": 43.2}]
+}'::jsonb
+FROM generate_series(1, 3);
+
+SELECT (jsonb_populate_record(NULL::jsbrec, js)).* FROM jsbpoptest;
+
+DROP TYPE jsbrec;
+DROP TYPE jsbrec_i_not_null;
+DROP DOMAIN jsb_int_not_null;
+DROP DOMAIN jsb_int_array_1d;
+DROP DOMAIN jsb_int_array_2d;
+DROP DOMAIN jb_ordered_pair;
+DROP TYPE jb_unordered_pair;
+
+-- indexing
+SELECT count(*) FROM testjsonb WHERE j @> '{"wait":null}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"wait":"CC"}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"wait":"CC", "public":true}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"age":25}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"age":25.0}';
+SELECT count(*) FROM testjsonb WHERE j ? 'public';
+SELECT count(*) FROM testjsonb WHERE j ? 'bar';
+SELECT count(*) FROM testjsonb WHERE j ?| ARRAY['public','disabled'];
+SELECT count(*) FROM testjsonb WHERE j ?& ARRAY['public','disabled'];
+
+-- TODO(jason) uncomment when issue #1337 is closed or closing.
+-- CREATE INDEX jidx ON testjsonb USING gin (j);
+SET enable_seqscan = off;
+
+SELECT count(*) FROM testjsonb WHERE j @> '{"wait":null}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"wait":"CC"}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"wait":"CC", "public":true}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"age":25}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"age":25.0}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"array":["foo"]}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"array":["bar"]}';
+-- exercise GIN_SEARCH_MODE_ALL
+SELECT count(*) FROM testjsonb WHERE j @> '{}';
+SELECT count(*) FROM testjsonb WHERE j ? 'public';
+SELECT count(*) FROM testjsonb WHERE j ? 'bar';
+SELECT count(*) FROM testjsonb WHERE j ?| ARRAY['public','disabled'];
+SELECT count(*) FROM testjsonb WHERE j ?& ARRAY['public','disabled'];
+
+-- array exists - array elements should behave as keys (for GIN index scans too)
+-- TODO(jason) uncomment when issue #1337 is closed or closing.
+-- CREATE INDEX jidx_array ON testjsonb USING gin((j->'array'));
+SELECT count(*) from testjsonb  WHERE j->'array' ? 'bar';
+-- type sensitive array exists - should return no rows (since "exists" only
+-- matches strings that are either object keys or array elements)
+SELECT count(*) from testjsonb  WHERE j->'array' ? '5'::text;
+-- However, a raw scalar is *contained* within the array
+SELECT count(*) from testjsonb  WHERE j->'array' @> '5'::jsonb;
+
+RESET enable_seqscan;
+
+SELECT count(*) FROM (SELECT (jsonb_each(j)).key FROM testjsonb) AS wow;
+SELECT key, count(*) FROM (SELECT (jsonb_each(j)).key FROM testjsonb) AS wow GROUP BY key ORDER BY count DESC, key;
+
+-- sort/hash
+SELECT count(distinct j) FROM testjsonb;
+SET enable_hashagg = off;
+SELECT count(*) FROM (SELECT j FROM (SELECT * FROM testjsonb UNION ALL SELECT * FROM testjsonb) js GROUP BY j) js2;
+SET enable_hashagg = on;
+SET enable_sort = off;
+SELECT count(*) FROM (SELECT j FROM (SELECT * FROM testjsonb UNION ALL SELECT * FROM testjsonb) js GROUP BY j) js2;
+SELECT distinct * FROM (values (jsonb '{}' || ''::text),('{}')) v(j);
+SET enable_sort = on;
+
+RESET enable_hashagg;
+RESET enable_sort;
+
+-- TODO(jason) uncomment when issue #1337 is closed or closing.
+-- DROP INDEX jidx;
+-- DROP INDEX jidx_array;
+-- -- btree
+-- CREATE INDEX jidx ON testjsonb USING btree (j);
+SET enable_seqscan = off;
+
+SELECT count(*) FROM testjsonb WHERE j > '{"p":1}';
+SELECT count(*) FROM testjsonb WHERE j = '{"pos":98, "line":371, "node":"CBA", "indexed":true}';
+
+--gin path opclass
+-- TODO(jason) uncomment when issue #1337 is closed or closing.
+-- DROP INDEX jidx;
+-- CREATE INDEX jidx ON testjsonb USING gin (j jsonb_path_ops);
+SET enable_seqscan = off;
+
+SELECT count(*) FROM testjsonb WHERE j @> '{"wait":null}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"wait":"CC"}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"wait":"CC", "public":true}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"age":25}';
+SELECT count(*) FROM testjsonb WHERE j @> '{"age":25.0}';
+-- exercise GIN_SEARCH_MODE_ALL
+SELECT count(*) FROM testjsonb WHERE j @> '{}';
+
+RESET enable_seqscan;
+-- TODO(jason) uncomment when issue #1337 is closed or closing.
+-- DROP INDEX jidx;
+
+-- nested tests
+SELECT '{"ff":{"a":12,"b":16}}'::jsonb;
+SELECT '{"ff":{"a":12,"b":16},"qq":123}'::jsonb;
+SELECT '{"aa":["a","aaa"],"qq":{"a":12,"b":16,"c":["c1","c2"],"d":{"d1":"d1","d2":"d2","d1":"d3"}}}'::jsonb;
+SELECT '{"aa":["a","aaa"],"qq":{"a":"12","b":"16","c":["c1","c2"],"d":{"d1":"d1","d2":"d2"}}}'::jsonb;
+SELECT '{"aa":["a","aaa"],"qq":{"a":"12","b":"16","c":["c1","c2",["c3"],{"c4":4}],"d":{"d1":"d1","d2":"d2"}}}'::jsonb;
+SELECT '{"ff":["a","aaa"]}'::jsonb;
+
+SELECT
+  '{"ff":{"a":12,"b":16},"qq":123,"x":[1,2],"Y":null}'::jsonb -> 'ff',
+  '{"ff":{"a":12,"b":16},"qq":123,"x":[1,2],"Y":null}'::jsonb -> 'qq',
+  ('{"ff":{"a":12,"b":16},"qq":123,"x":[1,2],"Y":null}'::jsonb -> 'Y') IS NULL AS f,
+  ('{"ff":{"a":12,"b":16},"qq":123,"x":[1,2],"Y":null}'::jsonb ->> 'Y') IS NULL AS t,
+   '{"ff":{"a":12,"b":16},"qq":123,"x":[1,2],"Y":null}'::jsonb -> 'x';
+
+-- nested containment
+SELECT '{"a":[1,2],"c":"b"}'::jsonb @> '{"a":[1,2]}';
+SELECT '{"a":[2,1],"c":"b"}'::jsonb @> '{"a":[1,2]}';
+SELECT '{"a":{"1":2},"c":"b"}'::jsonb @> '{"a":[1,2]}';
+SELECT '{"a":{"2":1},"c":"b"}'::jsonb @> '{"a":[1,2]}';
+SELECT '{"a":{"1":2},"c":"b"}'::jsonb @> '{"a":{"1":2}}';
+SELECT '{"a":{"2":1},"c":"b"}'::jsonb @> '{"a":{"1":2}}';
+SELECT '["a","b"]'::jsonb @> '["a","b","c","b"]';
+SELECT '["a","b","c","b"]'::jsonb @> '["a","b"]';
+SELECT '["a","b","c",[1,2]]'::jsonb @> '["a",[1,2]]';
+SELECT '["a","b","c",[1,2]]'::jsonb @> '["b",[1,2]]';
+
+SELECT '{"a":[1,2],"c":"b"}'::jsonb @> '{"a":[1]}';
+SELECT '{"a":[1,2],"c":"b"}'::jsonb @> '{"a":[2]}';
+SELECT '{"a":[1,2],"c":"b"}'::jsonb @> '{"a":[3]}';
+
+SELECT '{"a":[1,2,{"c":3,"x":4}],"c":"b"}'::jsonb @> '{"a":[{"c":3}]}';
+SELECT '{"a":[1,2,{"c":3,"x":4}],"c":"b"}'::jsonb @> '{"a":[{"x":4}]}';
+SELECT '{"a":[1,2,{"c":3,"x":4}],"c":"b"}'::jsonb @> '{"a":[{"x":4},3]}';
+SELECT '{"a":[1,2,{"c":3,"x":4}],"c":"b"}'::jsonb @> '{"a":[{"x":4},1]}';
+
+-- check some corner cases for indexed nested containment (bug #13756)
+create temp table nestjsonb (j jsonb);
+insert into nestjsonb (j) values ('{"a":[["b",{"x":1}],["b",{"x":2}]],"c":3}');
+insert into nestjsonb (j) values ('[[14,2,3]]');
+insert into nestjsonb (j) values ('[1,[14,2,3]]');
+-- TODO(jason) uncomment when issue #1337 is closed or closing.
+-- create index on nestjsonb using gin(j jsonb_path_ops);
+
+set enable_seqscan = on;
+set enable_bitmapscan = off;
+select * from nestjsonb where j @> '{"a":[[{"x":2}]]}'::jsonb;
+select * from nestjsonb where j @> '{"c":3}';
+select * from nestjsonb where j @> '[[14]]';
+set enable_seqscan = off;
+set enable_bitmapscan = on;
+select * from nestjsonb where j @> '{"a":[[{"x":2}]]}'::jsonb;
+select * from nestjsonb where j @> '{"c":3}';
+select * from nestjsonb where j @> '[[14]]';
+reset enable_seqscan;
+reset enable_bitmapscan;
+
+-- nested object field / array index lookup
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb -> 'n';
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb -> 'a';
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb -> 'b';
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb -> 'c';
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb -> 'd';
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb -> 'd' -> '1';
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb -> 'e';
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb -> 0; --expecting error
+
+SELECT '["a","b","c",[1,2],null]'::jsonb -> 0;
+SELECT '["a","b","c",[1,2],null]'::jsonb -> 1;
+SELECT '["a","b","c",[1,2],null]'::jsonb -> 2;
+SELECT '["a","b","c",[1,2],null]'::jsonb -> 3;
+SELECT '["a","b","c",[1,2],null]'::jsonb -> 3 -> 1;
+SELECT '["a","b","c",[1,2],null]'::jsonb -> 4;
+SELECT '["a","b","c",[1,2],null]'::jsonb -> 5;
+SELECT '["a","b","c",[1,2],null]'::jsonb -> -1;
+SELECT '["a","b","c",[1,2],null]'::jsonb -> -5;
+SELECT '["a","b","c",[1,2],null]'::jsonb -> -6;
+
+--nested path extraction
+SELECT '{"a":"b","c":[1,2,3]}'::jsonb #> '{0}';
+SELECT '{"a":"b","c":[1,2,3]}'::jsonb #> '{a}';
+SELECT '{"a":"b","c":[1,2,3]}'::jsonb #> '{c}';
+SELECT '{"a":"b","c":[1,2,3]}'::jsonb #> '{c,0}';
+SELECT '{"a":"b","c":[1,2,3]}'::jsonb #> '{c,1}';
+SELECT '{"a":"b","c":[1,2,3]}'::jsonb #> '{c,2}';
+SELECT '{"a":"b","c":[1,2,3]}'::jsonb #> '{c,3}';
+SELECT '{"a":"b","c":[1,2,3]}'::jsonb #> '{c,-1}';
+SELECT '{"a":"b","c":[1,2,3]}'::jsonb #> '{c,-3}';
+SELECT '{"a":"b","c":[1,2,3]}'::jsonb #> '{c,-4}';
+
+SELECT '[0,1,2,[3,4],{"5":"five"}]'::jsonb #> '{0}';
+SELECT '[0,1,2,[3,4],{"5":"five"}]'::jsonb #> '{3}';
+SELECT '[0,1,2,[3,4],{"5":"five"}]'::jsonb #> '{4}';
+SELECT '[0,1,2,[3,4],{"5":"five"}]'::jsonb #> '{4,5}';
+
+--nested exists
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb ? 'n';
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb ? 'a';
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb ? 'b';
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb ? 'c';
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb ? 'd';
+SELECT '{"n":null,"a":1,"b":[1,2],"c":{"1":2},"d":{"1":[2,3]}}'::jsonb ? 'e';
+
 -- jsonb_strip_nulls
 
 select jsonb_strip_nulls(null);
@@ -676,3 +1093,82 @@ select jsonb_insert('{"a": {"b": "value"}}', '{a, c}', '"new_value"', true);
 
 select jsonb_insert('{"a": {"b": "value"}}', '{a, b}', '"new_value"');
 select jsonb_insert('{"a": {"b": "value"}}', '{a, b}', '"new_value"', true);
+
+-- TODO(jason): uncomment when issue #1979 is closed or closing.
+-- -- jsonb to tsvector
+-- select to_tsvector('{"a": "aaa bbb ddd ccc", "b": ["eee fff ggg"], "c": {"d": "hhh iii"}}'::jsonb);
+--
+-- -- jsonb to tsvector with config
+-- select to_tsvector('simple', '{"a": "aaa bbb ddd ccc", "b": ["eee fff ggg"], "c": {"d": "hhh iii"}}'::jsonb);
+--
+-- -- jsonb to tsvector with stop words
+-- select to_tsvector('english', '{"a": "aaa in bbb ddd ccc", "b": ["the eee fff ggg"], "c": {"d": "hhh. iii"}}'::jsonb);
+--
+-- -- jsonb to tsvector with numeric values
+-- select to_tsvector('english', '{"a": "aaa in bbb ddd ccc", "b": 123, "c": 456}'::jsonb);
+--
+-- -- jsonb_to_tsvector
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"all"');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"key"');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"string"');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"numeric"');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"boolean"');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '["string", "numeric"]');
+--
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"all"');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"key"');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"string"');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"numeric"');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '"boolean"');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '["string", "numeric"]');
+--
+-- -- ts_vector corner cases
+-- select to_tsvector('""'::jsonb);
+-- select to_tsvector('{}'::jsonb);
+-- select to_tsvector('[]'::jsonb);
+-- select to_tsvector('null'::jsonb);
+--
+-- -- jsonb_to_tsvector corner cases
+-- select jsonb_to_tsvector('""'::jsonb, '"all"');
+-- select jsonb_to_tsvector('{}'::jsonb, '"all"');
+-- select jsonb_to_tsvector('[]'::jsonb, '"all"');
+-- select jsonb_to_tsvector('null'::jsonb, '"all"');
+--
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '""');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '{}');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '[]');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, 'null');
+-- select jsonb_to_tsvector('english', '{"a": "aaa in bbb", "b": 123, "c": 456, "d": true, "f": false, "g": null}'::jsonb, '["all", null]');
+--
+-- -- ts_headline for jsonb
+-- select ts_headline('{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::jsonb, tsquery('bbb & ddd & hhh'));
+-- select ts_headline('english', '{"a": "aaa bbb", "b": {"c": "ccc ddd fff"}, "d": ["ggg hhh", "iii jjj"]}'::jsonb, tsquery('bbb & ddd & hhh'));
+-- select ts_headline('{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::jsonb, tsquery('bbb & ddd & hhh'), 'StartSel = <, StopSel = >');
+-- select ts_headline('english', '{"a": "aaa bbb", "b": {"c": "ccc ddd fff", "c1": "ccc1 ddd1"}, "d": ["ggg hhh", "iii jjj"]}'::jsonb, tsquery('bbb & ddd & hhh'), 'StartSel = <, StopSel = >');
+--
+-- -- corner cases for ts_headline with jsonb
+-- select ts_headline('null'::jsonb, tsquery('aaa & bbb'));
+-- select ts_headline('{}'::jsonb, tsquery('aaa & bbb'));
+-- select ts_headline('[]'::jsonb, tsquery('aaa & bbb'));
+
+-- casts
+select 'true'::jsonb::bool;
+select '[]'::jsonb::bool;
+select '1.0'::jsonb::float;
+select '[1.0]'::jsonb::float;
+select '12345'::jsonb::int4;
+select '"hello"'::jsonb::int4;
+select '12345'::jsonb::numeric;
+select '{}'::jsonb::numeric;
+select '12345.05'::jsonb::numeric;
+select '12345.05'::jsonb::float4;
+select '12345.05'::jsonb::float8;
+select '12345.05'::jsonb::int2;
+select '12345.05'::jsonb::int4;
+select '12345.05'::jsonb::int8;
+select '12345.0000000000000000000000000000000000000000000005'::jsonb::numeric;
+select '12345.0000000000000000000000000000000000000000000005'::jsonb::float4;
+select '12345.0000000000000000000000000000000000000000000005'::jsonb::float8;
+select '12345.0000000000000000000000000000000000000000000005'::jsonb::int2;
+select '12345.0000000000000000000000000000000000000000000005'::jsonb::int4;
+select '12345.0000000000000000000000000000000000000000000005'::jsonb::int8;
