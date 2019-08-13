@@ -1234,9 +1234,9 @@ static const YBCPgTypeEntity YBCTypeEntityTable[] = {
  * `true`.
  */
 static const YBCPgTypeEntity YBCFixedLenTypeEntity =
-	{ OIDOID, YB_YQL_DATA_TYPE_UINT32, false, sizeof(Oid),
-		(YBCPgDatumToData)YBCDatumToOid,
-		(YBCPgDatumFromData)YBCOidToDatum };
+	{ INT8OID, YB_YQL_DATA_TYPE_INT64, false, sizeof(int64),
+		(YBCPgDatumToData)YBCDatumToInt64,
+		(YBCPgDatumFromData)YBCInt64ToDatum };
 /* Special type entity used for variable-length user-defined types.
  * TODO(jason): When user-defined types as primary keys are supported, change the below `false` to
  * `true`.
