@@ -4,6 +4,8 @@
 # Postgres Testsuites: Porting from PostgreSQL original tests.
 # This suite includes all tests on user defined types that are enabled for YugaByte.
 ####################################################################################################
+# Dependency for yb_base_type
+test: yb_create_function
 # Dependency for yb_pg_create_type
 test: yb_pg_create_function_1
 

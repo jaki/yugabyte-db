@@ -1248,7 +1248,7 @@ static const YBCPgTypeEntity YBCTypeEntityTable[] = {
  * `true`.
  */
 static const YBCPgTypeEntity YBCFixedLenByRefTypeEntity =
-	{ BYTEAOID, YB_YQL_DATA_TYPE_BINARY, false, 64,
+	{ BYTEAOID, YB_YQL_DATA_TYPE_BINARY, false, 128,
 		(YBCPgDatumToData)YBCDatumToDocdb,
 		(YBCPgDatumFromData)YBCDocdbToDatum };
 /* Special type entity used for fixed-length, pass-by-value user-defined types.

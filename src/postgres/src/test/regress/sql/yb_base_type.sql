@@ -4,6 +4,25 @@
 
 \set VERBOSITY terse
 
+-- typlen:128, typbyval:f, typalign:c
+CREATE TYPE bigname (
+    INPUT = bigname_in,
+    OUTPUT = bigname_out,
+    INTERNALLENGTH = 128,
+    ALIGNMENT = char,
+    STORAGE = plain
+);
+CREATE TABLE bigname_table (t bigname);
+INSERT INTO bigname_table (t)
+    VALUES ('AaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaABCcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccC');
+INSERT INTO bigname_table (t)
+    VALUES ('AaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaABCcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccCB');
+INSERT INTO bigname_table (t)
+    VALUES ('AaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaABCcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccCBD');
+SELECT * FROM bigname_table;
+DROP TABLE bigname_table;
+DROP TYPE bigname CASCADE;
+
 -- typlen:64, typbyval:f, typalign:c
 CREATE TYPE name_type;
 CREATE FUNCTION name_type_in(cstring) RETURNS name_type
@@ -18,6 +37,10 @@ CREATE TYPE name_type (
 CREATE TABLE name_table (t name_type);
 INSERT INTO name_table (t)
     VALUES ('AaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaA');
+INSERT INTO name_table (t)
+    VALUES ('AaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAB');
+INSERT INTO name_table (t)
+    VALUES ('AaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaABC');
 SELECT * FROM name_table;
 DROP TABLE name_table;
 DROP TYPE name_type CASCADE;
@@ -357,6 +380,24 @@ INSERT INTO int2vector_table (t)
 SELECT * FROM int2vector_table;
 DROP TABLE int2vector_table;
 DROP TYPE int2vector_type CASCADE;
+
+-- typlen:-1, typbyval:f, typalign:i
+CREATE TYPE json_type;
+CREATE FUNCTION json_type_in(cstring) RETURNS json_type
+    LANGUAGE internal IMMUTABLE STRICT PARALLEL SAFE AS 'json_in';
+CREATE FUNCTION json_type_out(json_type) RETURNS cstring
+    LANGUAGE internal IMMUTABLE STRICT PARALLEL SAFE AS 'json_out';
+CREATE TYPE json_type (
+    INPUT = json_type_in,
+    OUTPUT = json_type_out,
+    LIKE = json
+);
+CREATE TABLE json_table (t json_type);
+INSERT INTO json_table (t)
+    VALUES ('{"a": [1, 2, 3]}');
+SELECT * FROM json_table;
+DROP TABLE json_table;
+DROP TYPE json_type CASCADE;
 
 -- typlen:-1, typbyval:f, typalign:i
 CREATE TYPE text_type;
