@@ -82,8 +82,10 @@
 
 #include "pg_yb_utils.h"
 
-static const YBCPgTypeEntity YBCFixedLenTypeEntity;
-static const YBCPgTypeEntity YBCVarLenTypeEntity;
+static const YBCPgTypeEntity YBCFixedLenByRefTypeEntity;
+static const YBCPgTypeEntity YBCFixedLenByValTypeEntity;
+static const YBCPgTypeEntity YBCNullTermByRefTypeEntity;
+static const YBCPgTypeEntity YBCVarLenByRefTypeEntity;
 
 /***************************************************************************************************
  * Find YugaByte storage type for each PostgreSQL datatype.
@@ -137,12 +139,24 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 
 		switch (tp->typtype) {
 			case TYPTYPE_BASE:
-				if (tp->typlen < 0) {
-					/* Variable length base type */
-					return &YBCVarLenTypeEntity;
+				if (tp->typbyval) {
+					/* fixed-length, pass-by-value base type */
+					return &YBCFixedLenByValTypeEntity;
 				} else {
-					/* fixed length base type */
-					return &YBCFixedLenTypeEntity;
+					switch (tp->typlen) {
+						case -2:
+							/* null-terminated, pass-by-reference base type */
+							return &YBCNullTermByRefTypeEntity;
+							break;
+						case -1:
+							/* variable-length, pass-by-reference base type */
+							return &YBCVarLenByRefTypeEntity;
+							break;
+						default:
+							/* fixed-length, pass-by-reference base type */
+							return &YBCFixedLenByRefTypeEntity;
+							break;
+					}
 				}
 				break;
 			case TYPTYPE_COMPOSITE:
@@ -156,7 +170,7 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 				 * primary keys:
 				 *   basetp_oid = ANYENUMOID;
 				 */
-				return &YBCFixedLenTypeEntity;
+				return &YBCFixedLenByValTypeEntity;
 				break;
 			case TYPTYPE_RANGE:
 				basetp_oid = ANYRANGEOID;
@@ -1229,23 +1243,38 @@ static const YBCPgTypeEntity YBCTypeEntityTable[] = {
 		(YBCPgDatumFromData)YBCDocdbToDatum },
 };
 
-/* Special type entity used for fixed-length user-defined types.
+/* Special type entity used for fixed-length, pass-by-reference user-defined types.
  * TODO(jason): When user-defined types as primary keys are supported, change the below `false` to
  * `true`.
  */
-static const YBCPgTypeEntity YBCFixedLenTypeEntity =
+static const YBCPgTypeEntity YBCFixedLenByRefTypeEntity =
+	{ BYTEAOID, YB_YQL_DATA_TYPE_BINARY, false, 64,
+		(YBCPgDatumToData)YBCDatumToDocdb,
+		(YBCPgDatumFromData)YBCDocdbToDatum };
+/* Special type entity used for fixed-length, pass-by-value user-defined types.
+ * TODO(jason): When user-defined types as primary keys are supported, change the below `false` to
+ * `true`.
+ */
+static const YBCPgTypeEntity YBCFixedLenByValTypeEntity =
 	{ INT8OID, YB_YQL_DATA_TYPE_INT64, false, sizeof(int64),
 		(YBCPgDatumToData)YBCDatumToInt64,
 		(YBCPgDatumFromData)YBCInt64ToDatum };
-/* Special type entity used for variable-length user-defined types.
+/* Special type entity used for null-terminated, pass-by-reference user-defined types.
  * TODO(jason): When user-defined types as primary keys are supported, change the below `false` to
  * `true`.
  */
-static const YBCPgTypeEntity YBCVarLenTypeEntity =
+static const YBCPgTypeEntity YBCNullTermByRefTypeEntity =
+	{ BYTEAOID, YB_YQL_DATA_TYPE_BINARY, false, -2,
+		(YBCPgDatumToData)YBCDatumToCStr,
+		(YBCPgDatumFromData)YBCCStrToDatum };
+/* Special type entity used for variable-length, pass-by-reference user-defined types.
+ * TODO(jason): When user-defined types as primary keys are supported, change the below `false` to
+ * `true`.
+ */
+static const YBCPgTypeEntity YBCVarLenByRefTypeEntity =
 	{ BYTEAOID, YB_YQL_DATA_TYPE_BINARY, false, -1,
 		(YBCPgDatumToData)YBCDatumToBinary,
 		(YBCPgDatumFromData)YBCBinaryToDatum };
-
 
 void YBCGetTypeTable(const YBCPgTypeEntity **type_table, int *count) {
 	*type_table = YBCTypeEntityTable;

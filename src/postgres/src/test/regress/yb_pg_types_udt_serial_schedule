@@ -7,7 +7,15 @@
 # Dependency for yb_pg_create_type
 test: yb_pg_create_function_1
 
-test: yb_pg_create_type
+# Overall UDTs
 test: yb_create_type
+
+# Composite types
+# TODO(jason): create and add here `yb_pg_rowtypes`
+# Enum types
 test: yb_pg_enum
+# Range types
 test: yb_pg_rangetypes
+# Base types
+test: yb_base_type
+test: yb_pg_create_type
