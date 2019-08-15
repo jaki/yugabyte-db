@@ -82,10 +82,11 @@
 
 #include "pg_yb_utils.h"
 
-static const YBCPgTypeEntity YBCFixedLenByRefTypeEntity;
+Datum YBCDocdbToDatum(const uint8 *data, int64 bytes, const YBCPgTypeAttrs *type_attrs);
 static const YBCPgTypeEntity YBCFixedLenByValTypeEntity;
 static const YBCPgTypeEntity YBCNullTermByRefTypeEntity;
 static const YBCPgTypeEntity YBCVarLenByRefTypeEntity;
+void YBCDatumToDocdb(Datum datum, uint8 **data, int64 *bytes);
 
 /***************************************************************************************************
  * Find YugaByte storage type for each PostgreSQL datatype.
@@ -152,9 +153,18 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 							/* variable-length, pass-by-reference base type */
 							return &YBCVarLenByRefTypeEntity;
 							break;
-						default:
+						default:;
 							/* fixed-length, pass-by-reference base type */
-							return &YBCFixedLenByRefTypeEntity;
+							YBCPgTypeEntity *fixed_ref_type_entity = (YBCPgTypeEntity *)palloc(
+									sizeof(YBCPgTypeEntity));
+							fixed_ref_type_entity->type_oid = BYTEAOID;
+							fixed_ref_type_entity->yb_type = YB_YQL_DATA_TYPE_BINARY;
+							fixed_ref_type_entity->allow_for_primary_key = false;
+							fixed_ref_type_entity->datum_fixed_size = tp->typlen;
+							fixed_ref_type_entity->datum_to_yb = (YBCPgDatumToData)YBCDatumToDocdb;
+							fixed_ref_type_entity->yb_to_datum =
+								(YBCPgDatumFromData)YBCDocdbToDatum;
+							return fixed_ref_type_entity;
 							break;
 					}
 				}
@@ -1243,14 +1253,6 @@ static const YBCPgTypeEntity YBCTypeEntityTable[] = {
 		(YBCPgDatumFromData)YBCDocdbToDatum },
 };
 
-/* Special type entity used for fixed-length, pass-by-reference user-defined types.
- * TODO(jason): When user-defined types as primary keys are supported, change the below `false` to
- * `true`.
- */
-static const YBCPgTypeEntity YBCFixedLenByRefTypeEntity =
-	{ BYTEAOID, YB_YQL_DATA_TYPE_BINARY, false, 128,
-		(YBCPgDatumToData)YBCDatumToDocdb,
-		(YBCPgDatumFromData)YBCDocdbToDatum };
 /* Special type entity used for fixed-length, pass-by-value user-defined types.
  * TODO(jason): When user-defined types as primary keys are supported, change the below `false` to
  * `true`.
