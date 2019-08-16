@@ -98,9 +98,6 @@ CREATE TABLE city (
 	location 	box,
 	budget 		city_budget
 );
-ERROR:  type "city_budget" does not exist
-LINE 4:  budget   city_budget
-                  ^
 CREATE TABLE dept (
 	dname		name,
 	mgrname 	text

@@ -4,14 +4,16 @@
 # Postgres Testsuites: Porting from PostgreSQL original tests.
 # This suite includes all tests on geometry datatypes that are enabled for YugaByte.
 ####################################################################################################
-# NOTE: Test create_table and copy before array because `yb_pg_arrays` test uses the tables in
-# `yb_pg_create_table` test which gets its data loaded in `yb_pg_copy` test.
+# Dependencies for `yb_pg_arrays`
+test: yb_pg_int8
+test: yb_point
+
+# Chain of dependencies for `yb_pg_arrays`
+test: yb_pg_create_function_1
+test: yb_pg_create_type
 test: yb_pg_create_table
 test: yb_pg_copy
-# NOTE: Test int8 before array because `yb_pg_arrays` test uses the tables in `yb_pg_int8` test.
-test: yb_pg_int8
-# NOTE: Test point before array because `yb_pg_arrays` test uses the tables in `yb_point` test.
-test: yb_point
+
 test: yb_pg_arrays
 test: yb_int2_array
 test: yb_int4_array

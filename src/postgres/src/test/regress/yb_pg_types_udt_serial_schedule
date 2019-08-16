@@ -4,10 +4,18 @@
 # Postgres Testsuites: Porting from PostgreSQL original tests.
 # This suite includes all tests on user defined types that are enabled for YugaByte.
 ####################################################################################################
-# Dependency for yb_base_type
-test: yb_create_function
-# Dependency for yb_pg_create_type
+# Dependency for `yb_pg_rowtypes`
+test: yb_pg_int8
+
+# Chain of dependencies for `yb_pg_rowtypes`
 test: yb_pg_create_function_1
+test: yb_pg_create_type
+test: yb_pg_create_table
+test: yb_pg_copy
+test: yb_pg_create_index
+
+# Dependency for `yb_base_type`
+test: yb_create_function
 
 # Overall UDTs
 test: yb_create_type
@@ -20,4 +28,4 @@ test: yb_pg_enum
 test: yb_pg_rangetypes
 # Base types
 test: yb_base_type
-test: yb_pg_create_type
+# Also, `yb_pg_create_type` belongs in this category, but it is placed above.
