@@ -192,7 +192,4 @@ SELECT typname FROM pg_type WHERE oid > 16000 ORDER BY oid DESC LIMIT 8;
 --
 -- Cleanup
 --
-DROP TABLE composite_table;
-DROP TABLE enum_table;
-DROP TABLE range_table;
-DROP TABLE base_table;
+DROP TABLE composite_table, enum_table, range_table, base_table;

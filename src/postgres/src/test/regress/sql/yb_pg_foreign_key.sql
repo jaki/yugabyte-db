@@ -845,11 +845,7 @@ FOREIGN KEY (x1,x2,x3) REFERENCES pktable(id2,id3,id1);
 ALTER TABLE fktable ADD CONSTRAINT fk_241_132
 FOREIGN KEY (x2,x4,x1) REFERENCES pktable(id1,id3,id2);
 
--- TODO YB cannot drop multiple tables in one stmt.
-DROP TABLE fktable;
-DROP TABLE pktable;
-
-
+DROP TABLE pktable, fktable;
 
 -- test a tricky case: we can elide firing the FK check trigger during
 -- an UPDATE if the UPDATE did not change the foreign key
@@ -1056,10 +1052,7 @@ update pp set f1=f1+1;
 insert into cc values(13);
 update pp set f1=f1+1;
 update pp set f1=f1+1; -- fail
-
--- TODO YB cannot drop multiple tables in one stmt.
-drop table cc;
-drop table pp;
+drop table pp, cc;
 
 create temp table pp (f1 int primary key);
 create temp table cc (f1 int references pp on update restrict);
@@ -1068,9 +1061,7 @@ insert into pp values(11);
 update pp set f1=f1+1;
 insert into cc values(13);
 update pp set f1=f1+1; -- fail
--- TODO YB cannot drop multiple tables in one stmt.
-drop table cc;
-drop table pp;
+drop table pp, cc;
 
 --
 -- Test interaction of foreign-key optimization with rules (bug #14219)
@@ -1090,10 +1081,7 @@ insert into pktable2 values (1, 2, 3, 4, 5);
 insert into fktable2 values (4, 5);
 delete from pktable2;
 update pktable2 set d = 5;
-
--- TODO YB cannot drop multiple tables in one stmt.
-drop table fktable2;
-drop table pktable2;
+drop table pktable2, fktable2;
 
 -- TODO YugaByte does not support deferrable constraints yet.
 /*
