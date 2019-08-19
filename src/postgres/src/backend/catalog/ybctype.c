@@ -157,7 +157,7 @@ YBCDataTypeFromOidMod(int attnum, Oid type_id)
 							/* fixed-length, pass-by-reference base type */
 							YBCPgTypeEntity *fixed_ref_type_entity = (YBCPgTypeEntity *)palloc(
 									sizeof(YBCPgTypeEntity));
-							fixed_ref_type_entity->type_oid = BYTEAOID;
+							fixed_ref_type_entity->type_oid = InvalidOid;
 							fixed_ref_type_entity->yb_type = YB_YQL_DATA_TYPE_BINARY;
 							fixed_ref_type_entity->allow_for_primary_key = false;
 							fixed_ref_type_entity->datum_fixed_size = tp->typlen;
@@ -1258,7 +1258,7 @@ static const YBCPgTypeEntity YBCTypeEntityTable[] = {
  * `true`.
  */
 static const YBCPgTypeEntity YBCFixedLenByValTypeEntity =
-	{ INT8OID, YB_YQL_DATA_TYPE_INT64, false, sizeof(int64),
+	{ InvalidOid, YB_YQL_DATA_TYPE_INT64, false, sizeof(int64),
 		(YBCPgDatumToData)YBCDatumToInt64,
 		(YBCPgDatumFromData)YBCInt64ToDatum };
 /* Special type entity used for null-terminated, pass-by-reference user-defined types.
@@ -1266,7 +1266,7 @@ static const YBCPgTypeEntity YBCFixedLenByValTypeEntity =
  * `true`.
  */
 static const YBCPgTypeEntity YBCNullTermByRefTypeEntity =
-	{ BYTEAOID, YB_YQL_DATA_TYPE_BINARY, false, -2,
+	{ InvalidOid, YB_YQL_DATA_TYPE_BINARY, false, -2,
 		(YBCPgDatumToData)YBCDatumToCStr,
 		(YBCPgDatumFromData)YBCCStrToDatum };
 /* Special type entity used for variable-length, pass-by-reference user-defined types.
@@ -1274,7 +1274,7 @@ static const YBCPgTypeEntity YBCNullTermByRefTypeEntity =
  * `true`.
  */
 static const YBCPgTypeEntity YBCVarLenByRefTypeEntity =
-	{ BYTEAOID, YB_YQL_DATA_TYPE_BINARY, false, -1,
+	{ InvalidOid, YB_YQL_DATA_TYPE_BINARY, false, -1,
 		(YBCPgDatumToData)YBCDatumToBinary,
 		(YBCPgDatumFromData)YBCBinaryToDatum };
 
