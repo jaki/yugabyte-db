@@ -4,6 +4,10 @@
 # Postgres Testsuites: Porting from PostgreSQL original tests.
 # This suite includes all tests on datatypes that are enabled for YugaByte.
 ####################################################################################################
+# `yb_pg_create_table` is a dependency for `yb_pg_copy`, and both are dependencies for
+# `yb_pg_jsonb`.
+test: yb_pg_create_table
+test: yb_pg_copy
 test: yb_bit
 test: yb_char
 test: yb_text

@@ -1096,6 +1096,28 @@ SELECT jsonb '{"a":"null", "b":"qq"}' ? 'a';
  t
 (1 row)
 
+-- array exists - array elements should behave as keys
+SELECT count(*) from testjsonb  WHERE j->'array' ? 'bar';
+ count
+-------
+     3
+(1 row)
+
+-- type sensitive array exists - should return no rows (since "exists" only
+-- matches strings that are either object keys or array elements)
+SELECT count(*) from testjsonb  WHERE j->'array' ? '5'::text;
+ count
+-------
+     0
+(1 row)
+
+-- However, a raw scalar is *contained* within the array
+SELECT count(*) from testjsonb  WHERE j->'array' @> '5'::jsonb;
+ count
+-------
+     1
+(1 row)
+
 SELECT jsonb_exists_any('{"a":null, "b":"qq"}', ARRAY['a','b']);
  jsonb_exists_any 
 ------------------
