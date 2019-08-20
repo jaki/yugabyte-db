@@ -428,3 +428,6 @@ CREATE TABLE tbl13 (
 	a			int4,
 	primary key (a asc)
 ) SPLIT (AT VALUES (MINVALUE), (0), (MAXVALUE));
+
+-- TODO(jason): remove when issue #1721 is closed or closing.
+DISCARD TEMP;

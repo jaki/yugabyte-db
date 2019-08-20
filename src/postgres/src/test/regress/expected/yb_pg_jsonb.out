@@ -4288,3 +4288,5 @@ select '12345.0000000000000000000000000000000000000000000005'::jsonb::int8;
  12345
 (1 row)
 
+-- TODO(jason): remove when issue #1721 is closed or closing.
+DISCARD TEMP;

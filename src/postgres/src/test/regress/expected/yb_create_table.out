@@ -468,3 +468,5 @@ CREATE TABLE tbl13 (
 	primary key (a asc)
 ) SPLIT (AT VALUES (MINVALUE), (0), (MAXVALUE));
 ERROR:  Split points must specify finite values
+-- TODO(jason): remove when issue #1721 is closed or closing.
+DISCARD TEMP;
