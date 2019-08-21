@@ -51,3 +51,6 @@ select stricttest4();
 DROP TABLE foo;
 DROP TABLE bar;
 DROP FUNCTION stricttest1(), stricttest2(), stricttest3(), stricttest4();
+
+-- TODO(jason): remove when issue #1721 is closed or closing.
+DISCARD TEMP;

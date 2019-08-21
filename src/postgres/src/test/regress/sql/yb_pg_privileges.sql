@@ -1281,3 +1281,6 @@ LOCK TABLE lock_table IN ROW EXCLUSIVE MODE; -- should fail
 -- DROP TABLE lock_table;
 -- DROP USER regress_locktable_user;
 --
+
+-- TODO(jason): remove when issue #1721 is closed or closing.
+DISCARD TEMP;
