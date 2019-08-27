@@ -19,6 +19,7 @@ test: yb_pg_copy
 test: yb_index_including
 test: yb_pg_create_aggregate
 test: yb_pg_create_function_3
+test: yb_pg_create_cast
 test: yb_select
 test: yb_pg_case
 test: yb_prepare
