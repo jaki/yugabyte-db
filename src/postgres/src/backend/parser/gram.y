@@ -896,6 +896,7 @@ stmt :
 			| InsertStmt
 			| LockStmt
 			| PrepareStmt
+			| RemoveAggrStmt
 			| RenameStmt
 			| RevokeStmt
 			| SelectStmt
@@ -995,7 +996,6 @@ stmt :
 			| LoadStmt { parser_ybc_not_support(@1, "This statement"); }
 			| NotifyStmt { parser_ybc_not_support(@1, "This statement"); }
 			| ReindexStmt { parser_ybc_not_support(@1, "This statement"); }
-			| RemoveAggrStmt { parser_ybc_not_support(@1, "This statement"); }
 			| RemoveOperStmt { parser_ybc_not_support(@1, "This statement"); }
 			| RuleStmt { parser_ybc_not_support(@1, "This statement"); }
 			| SecLabelStmt { parser_ybc_not_support(@1, "This statement"); }
@@ -6072,7 +6072,6 @@ DropAssertStmt:
 DefineStmt:
 			CREATE AGGREGATE func_name aggr_args definition
 				{
-					parser_ybc_not_support(@1, "CREATE AGGREGATE");
 					DefineStmt *n = makeNode(DefineStmt);
 					n->kind = OBJECT_AGGREGATE;
 					n->oldstyle = false;
@@ -6083,7 +6082,6 @@ DefineStmt:
 				}
 			| CREATE AGGREGATE func_name old_aggr_definition
 				{
-					parser_ybc_not_support(@1, "CREATE AGGREGATE");
 					/* old-style (pre-8.2) syntax for CREATE AGGREGATE */
 					DefineStmt *n = makeNode(DefineStmt);
 					n->kind = OBJECT_AGGREGATE;
@@ -8693,7 +8691,6 @@ RemoveFuncStmt:
 RemoveAggrStmt:
 			DROP AGGREGATE aggregate_with_argtypes_list opt_drop_behavior
 				{
-					parser_ybc_not_support(@1, "DROP AGGREGATE");
 					DropStmt *n = makeNode(DropStmt);
 					n->removeType = OBJECT_AGGREGATE;
 					n->objects = $3;
@@ -8704,7 +8701,6 @@ RemoveAggrStmt:
 				}
 			| DROP AGGREGATE IF_P EXISTS aggregate_with_argtypes_list opt_drop_behavior
 				{
-					parser_ybc_not_support(@1, "DROP AGGREGATE");
 					DropStmt *n = makeNode(DropStmt);
 					n->removeType = OBJECT_AGGREGATE;
 					n->objects = $5;
