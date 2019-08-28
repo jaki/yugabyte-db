@@ -118,25 +118,24 @@ bar	true
 \.
 SELECT * FROM atest1; -- ok
 
--- NOT SUPPORTED
---
--- -- test leaky-function protections in selfuncs
---
--- -- regress_priv_user1 will own a table and provide a view for it.
--- SET SESSION AUTHORIZATION regress_priv_user1;
---
--- CREATE TABLE atest12 as
---   SELECT x AS a, 10001 - x AS b FROM generate_series(1,10000) x;
--- CREATE INDEX ON atest12 (a);
--- CREATE INDEX ON atest12 (abs(a));
---
--- CREATE FUNCTION leak(integer,integer) RETURNS boolean
---   AS $$begin return $1 < $2; end$$
---   LANGUAGE plpgsql immutable;
--- IF THIS LINE CAUSES A FAILURE, THIS REGION MAY BE SUPPORTED
+
+-- test leaky-function protections in selfuncs
+
+-- regress_priv_user1 will own a table and provide a view for it.
+SET SESSION AUTHORIZATION regress_priv_user1;
+
+CREATE TABLE atest12 as
+  SELECT x AS a, 10001 - x AS b FROM generate_series(1,10000) x;
+CREATE INDEX ON atest12 (a);
+CREATE INDEX ON atest12 (abs(a));
+VACUUM ANALYZE atest12;
+
+CREATE FUNCTION leak(integer,integer) RETURNS boolean
+  AS $$begin return $1 < $2; end$$
+  LANGUAGE plpgsql immutable;
 CREATE OPERATOR <<< (procedure = leak, leftarg = integer, rightarg = integer,
                      restrict = scalarltsel);
---
+
 -- -- view with leaky operator
 -- CREATE VIEW atest12v AS
 --   SELECT * FROM atest12 WHERE b <<< 5;
@@ -577,8 +576,7 @@ CREATE CAST (priv_testdomain1 AS priv_testdomain3b) WITH FUNCTION castfunc(int);
 CREATE FUNCTION priv_testfunc5b(a priv_testdomain1) RETURNS int LANGUAGE SQL AS $$ SELECT $1 $$;
 CREATE FUNCTION priv_testfunc6b(b int) RETURNS priv_testdomain1 LANGUAGE SQL AS $$ SELECT $1::priv_testdomain1 $$;
 
--- TODO(jason): uncomment when issue #1981 is closed or closing.
--- CREATE OPERATOR !! (PROCEDURE = priv_testfunc5b, RIGHTARG = priv_testdomain1);
+CREATE OPERATOR !! (PROCEDURE = priv_testfunc5b, RIGHTARG = priv_testdomain1);
 
 CREATE TABLE test5b (a int, b priv_testdomain1);
 CREATE TABLE test6b OF priv_testtype1;
