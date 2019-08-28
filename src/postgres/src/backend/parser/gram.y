@@ -899,6 +899,7 @@ stmt :
 			| LockStmt
 			| PrepareStmt
 			| RemoveAggrStmt
+			| RemoveOperStmt
 			| RenameStmt
 			| RevokeStmt
 			| SelectStmt
@@ -996,7 +997,6 @@ stmt :
 			| LoadStmt { parser_ybc_not_support(@1, "This statement"); }
 			| NotifyStmt { parser_ybc_not_support(@1, "This statement"); }
 			| ReindexStmt { parser_ybc_not_support(@1, "This statement"); }
-			| RemoveOperStmt { parser_ybc_not_support(@1, "This statement"); }
 			| RuleStmt { parser_ybc_not_support(@1, "This statement"); }
 			| SecLabelStmt { parser_ybc_not_support(@1, "This statement"); }
 			| UnlistenStmt { parser_ybc_not_support(@1, "This statement"); }
@@ -6093,7 +6093,6 @@ DefineStmt:
 				}
 			| CREATE OPERATOR any_operator definition
 				{
-					parser_ybc_not_support(@1, "CREATE OPERATOR");
 					DefineStmt *n = makeNode(DefineStmt);
 					n->kind = OBJECT_OPERATOR;
 					n->oldstyle = false;
@@ -8714,7 +8713,6 @@ RemoveAggrStmt:
 RemoveOperStmt:
 			DROP OPERATOR operator_with_argtypes_list opt_drop_behavior
 				{
-					parser_ybc_not_support(@1, "DROP OPERATOR");
 					DropStmt *n = makeNode(DropStmt);
 					n->removeType = OBJECT_OPERATOR;
 					n->objects = $3;
@@ -8725,7 +8723,6 @@ RemoveOperStmt:
 				}
 			| DROP OPERATOR IF_P EXISTS operator_with_argtypes_list opt_drop_behavior
 				{
-					parser_ybc_not_support(@1, "DROP OPERATOR");
 					DropStmt *n = makeNode(DropStmt);
 					n->removeType = OBJECT_OPERATOR;
 					n->objects = $5;
