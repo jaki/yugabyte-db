@@ -571,18 +571,14 @@ CREATE AGGREGATE priv_testagg1b(priv_testdomain1) (sfunc = int4_sum, stype = big
 CREATE DOMAIN priv_testdomain2b AS priv_testdomain1;
 
 CREATE DOMAIN priv_testdomain3b AS int;
-
--- NOT SUPPORTED
---
--- CREATE FUNCTION castfunc(int) RETURNS priv_testdomain3b AS $$ SELECT $1::priv_testdomain3b $$ LANGUAGE SQL;
--- IF THIS LINE CAUSES A FAILURE, THIS REGION MAY BE SUPPORTED
+CREATE FUNCTION castfunc(int) RETURNS priv_testdomain3b AS $$ SELECT $1::priv_testdomain3b $$ LANGUAGE SQL;
 CREATE CAST (priv_testdomain1 AS priv_testdomain3b) WITH FUNCTION castfunc(int);
---
--- CREATE FUNCTION priv_testfunc5b(a priv_testdomain1) RETURNS int LANGUAGE SQL AS $$ SELECT $1 $$;
--- CREATE FUNCTION priv_testfunc6b(b int) RETURNS priv_testdomain1 LANGUAGE SQL AS $$ SELECT $1::priv_testdomain1 $$;
---
+
+CREATE FUNCTION priv_testfunc5b(a priv_testdomain1) RETURNS int LANGUAGE SQL AS $$ SELECT $1 $$;
+CREATE FUNCTION priv_testfunc6b(b int) RETURNS priv_testdomain1 LANGUAGE SQL AS $$ SELECT $1::priv_testdomain1 $$;
+
+-- TODO(jason): uncomment when issue #1981 is closed or closing.
 -- CREATE OPERATOR !! (PROCEDURE = priv_testfunc5b, RIGHTARG = priv_testdomain1);
---
 
 CREATE TABLE test5b (a int, b priv_testdomain1);
 CREATE TABLE test6b OF priv_testtype1;
@@ -608,29 +604,17 @@ REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
 \c -
 DROP AGGREGATE priv_testagg1b(priv_testdomain1);
 DROP DOMAIN priv_testdomain2b;
-
--- NOT SUPPORTED
---
--- IF THIS LINE CAUSES A FAILURE, THIS REGION MAY BE SUPPORTED
 DROP OPERATOR !! (NONE, priv_testdomain1);
--- DROP FUNCTION priv_testfunc5b(a priv_testdomain1);
--- DROP FUNCTION priv_testfunc6b(b int);
---
-
+DROP FUNCTION priv_testfunc5b(a priv_testdomain1);
+DROP FUNCTION priv_testfunc6b(b int);
 DROP TABLE test5b;
 DROP TABLE test6b;
 DROP TABLE test9b;
 DROP TABLE test10b;
-
--- NOT SUPPORTED
---
--- IF THIS LINE CAUSES A FAILURE, THIS REGION MAY BE SUPPORTED
 DROP TYPE test7b;
 DROP TYPE test8b;
--- DROP CAST (priv_testdomain1 AS priv_testdomain3b);
--- DROP FUNCTION castfunc(int) CASCADE;
---
-
+DROP CAST (priv_testdomain1 AS priv_testdomain3b);
+DROP FUNCTION castfunc(int) CASCADE;
 DROP DOMAIN priv_testdomain3b;
 DROP TABLE test11b;
 
