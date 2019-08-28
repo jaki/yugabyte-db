@@ -450,24 +450,20 @@ SET SESSION AUTHORIZATION regress_priv_user1;
 GRANT USAGE ON LANGUAGE sql TO regress_priv_user2; -- fail
 CREATE FUNCTION priv_testfunc1(int) RETURNS int AS 'select 2 * $1;' LANGUAGE sql;
 CREATE FUNCTION priv_testfunc2(int) RETURNS int AS 'select 3 * $1;' LANGUAGE sql;
--- TODO(jason): uncomment lines about `priv_testagg1` when issue #1981 is
--- fixed.
 CREATE AGGREGATE priv_testagg1(int) (sfunc = int4pl, stype = int4);
 CREATE PROCEDURE priv_testproc1(int) AS 'select $1;' LANGUAGE sql;
 
--- TODO(jason): edit the following two statements (diff get `privileges`) when
--- issue #1981 is fixed.
-REVOKE ALL ON FUNCTION priv_testfunc1(int), priv_testfunc2(int) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION priv_testfunc1(int), priv_testfunc2(int) TO regress_priv_user2;
+REVOKE ALL ON FUNCTION priv_testfunc1(int), priv_testfunc2(int), priv_testagg1(int) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION priv_testfunc1(int), priv_testfunc2(int), priv_testagg1(int) TO regress_priv_user2;
 REVOKE ALL ON FUNCTION priv_testproc1(int) FROM PUBLIC; -- fail, not a function
 REVOKE ALL ON PROCEDURE priv_testproc1(int) FROM PUBLIC;
 GRANT EXECUTE ON PROCEDURE priv_testproc1(int) TO regress_priv_user2;
 GRANT USAGE ON FUNCTION priv_testfunc1(int) TO regress_priv_user3; -- semantic error
--- GRANT USAGE ON FUNCTION priv_testagg1(int) TO regress_priv_user3; -- semantic error
+GRANT USAGE ON FUNCTION priv_testagg1(int) TO regress_priv_user3; -- semantic error
 GRANT USAGE ON PROCEDURE priv_testproc1(int) TO regress_priv_user3; -- semantic error
 GRANT ALL PRIVILEGES ON FUNCTION priv_testfunc1(int) TO regress_priv_user4;
 GRANT ALL PRIVILEGES ON FUNCTION priv_testfunc_nosuch(int) TO regress_priv_user4;
--- GRANT ALL PRIVILEGES ON FUNCTION priv_testagg1(int) TO regress_priv_user4;
+GRANT ALL PRIVILEGES ON FUNCTION priv_testagg1(int) TO regress_priv_user4;
 GRANT ALL PRIVILEGES ON PROCEDURE priv_testproc1(int) TO regress_priv_user4;
 
 CREATE FUNCTION priv_testfunc4(boolean) RETURNS text
@@ -478,23 +474,23 @@ GRANT EXECUTE ON FUNCTION priv_testfunc4(boolean) TO regress_priv_user3;
 SET SESSION AUTHORIZATION regress_priv_user2;
 SELECT priv_testfunc1(5), priv_testfunc2(5); -- ok
 CREATE FUNCTION priv_testfunc3(int) RETURNS int AS 'select 2 * $1;' LANGUAGE sql; -- fail
--- SELECT priv_testagg1(x) FROM (VALUES (1), (2), (3)) _(x); -- ok
+SELECT priv_testagg1(x) FROM (VALUES (1), (2), (3)) _(x); -- ok
 CALL priv_testproc1(6); -- ok
 
 SET SESSION AUTHORIZATION regress_priv_user3;
 SELECT priv_testfunc1(5); -- fail
--- SELECT priv_testagg1(x) FROM (VALUES (1), (2), (3)) _(x); -- fail
+SELECT priv_testagg1(x) FROM (VALUES (1), (2), (3)) _(x); -- fail
 CALL priv_testproc1(6); -- fail
 SELECT col1 FROM atest2 WHERE col2 = true; -- fail
 SELECT priv_testfunc4(true); -- ok
 
 SET SESSION AUTHORIZATION regress_priv_user4;
 SELECT priv_testfunc1(5); -- ok
--- SELECT priv_testagg1(x) FROM (VALUES (1), (2), (3)) _(x); -- ok
+SELECT priv_testagg1(x) FROM (VALUES (1), (2), (3)) _(x); -- ok
 CALL priv_testproc1(6); -- ok
 
 DROP FUNCTION priv_testfunc1(int); -- fail
--- DROP AGGREGATE priv_testagg1(int); -- fail
+DROP AGGREGATE priv_testagg1(int); -- fail
 DROP PROCEDURE priv_testproc1(int); -- fail
 
 \c -
@@ -570,9 +566,7 @@ SET SESSION AUTHORIZATION regress_priv_user2;
 
 -- commands that should succeed
 
--- TODO(jason): uncomment lines about `priv_testagg1b` when issue #1981 is
--- fixed.
--- CREATE AGGREGATE priv_testagg1b(priv_testdomain1) (sfunc = int4_sum, stype = bigint);
+CREATE AGGREGATE priv_testagg1b(priv_testdomain1) (sfunc = int4_sum, stype = bigint);
 
 CREATE DOMAIN priv_testdomain2b AS priv_testdomain1;
 
@@ -612,7 +606,7 @@ CREATE TABLE test11b AS (SELECT 1::priv_testdomain1 AS a);
 REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
 
 \c -
--- DROP AGGREGATE priv_testagg1b(priv_testdomain1);
+DROP AGGREGATE priv_testagg1b(priv_testdomain1);
 DROP DOMAIN priv_testdomain2b;
 
 -- NOT SUPPORTED
@@ -1010,29 +1004,28 @@ SELECT has_schema_privilege('regress_priv_user2', 'testns5', 'CREATE'); -- no
 SET ROLE regress_priv_user1;
 
 CREATE FUNCTION testns.foo() RETURNS int AS 'select 1' LANGUAGE sql;
--- TODO(jason): uncomment lines about `testns.agg1` when issue #1981 is fixed.
 CREATE AGGREGATE testns.agg1(int) (sfunc = int4pl, stype = int4);
 CREATE PROCEDURE testns.bar() AS 'select 1' LANGUAGE sql;
 
 SELECT has_function_privilege('regress_priv_user2', 'testns.foo()', 'EXECUTE'); -- no
--- SELECT has_function_privilege('regress_priv_user2', 'testns.agg1(int)', 'EXECUTE'); -- no
+SELECT has_function_privilege('regress_priv_user2', 'testns.agg1(int)', 'EXECUTE'); -- no
 SELECT has_function_privilege('regress_priv_user2', 'testns.bar()', 'EXECUTE'); -- no
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA testns GRANT EXECUTE ON ROUTINES to public;
 
 DROP FUNCTION testns.foo();
 CREATE FUNCTION testns.foo() RETURNS int AS 'select 1' LANGUAGE sql;
--- DROP AGGREGATE testns.agg1(int);
--- CREATE AGGREGATE testns.agg1(int) (sfunc = int4pl, stype = int4);
+DROP AGGREGATE testns.agg1(int);
+CREATE AGGREGATE testns.agg1(int) (sfunc = int4pl, stype = int4);
 DROP PROCEDURE testns.bar();
 CREATE PROCEDURE testns.bar() AS 'select 1' LANGUAGE sql;
 
 SELECT has_function_privilege('regress_priv_user2', 'testns.foo()', 'EXECUTE'); -- yes
--- SELECT has_function_privilege('regress_priv_user2', 'testns.agg1(int)', 'EXECUTE'); -- yes
+SELECT has_function_privilege('regress_priv_user2', 'testns.agg1(int)', 'EXECUTE'); -- yes
 SELECT has_function_privilege('regress_priv_user2', 'testns.bar()', 'EXECUTE'); -- yes (counts as function here)
 
 DROP FUNCTION testns.foo();
--- DROP AGGREGATE testns.agg1(int);
+DROP AGGREGATE testns.agg1(int);
 DROP PROCEDURE testns.bar();
 
 ALTER DEFAULT PRIVILEGES FOR ROLE regress_priv_user1 REVOKE USAGE ON TYPES FROM public;
@@ -1087,19 +1080,17 @@ SELECT has_table_privilege('regress_priv_user1', 'testns.t1', 'SELECT'); -- fals
 SELECT has_table_privilege('regress_priv_user1', 'testns.t2', 'SELECT'); -- false
 
 CREATE FUNCTION testns.priv_testfunc(int) RETURNS int AS 'select 3 * $1;' LANGUAGE sql;
--- TODO(jason): uncomment lines about `testns.priv_testagg` when issue #1981 is
--- fixed.
 CREATE AGGREGATE testns.priv_testagg(int) (sfunc = int4pl, stype = int4);
 CREATE PROCEDURE testns.priv_testproc(int) AS 'select 3' LANGUAGE sql;
 
 SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testfunc(int)', 'EXECUTE'); -- true by default
--- SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testagg(int)', 'EXECUTE'); -- true by default
+SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testagg(int)', 'EXECUTE'); -- true by default
 SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testproc(int)', 'EXECUTE'); -- true by default
 
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA testns FROM PUBLIC;
 
 SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testfunc(int)', 'EXECUTE'); -- false
--- SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testagg(int)', 'EXECUTE'); -- false
+SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testagg(int)', 'EXECUTE'); -- false
 SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testproc(int)', 'EXECUTE'); -- still true, not a function
 
 REVOKE ALL ON ALL PROCEDURES IN SCHEMA testns FROM PUBLIC;
@@ -1109,7 +1100,7 @@ SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testproc(int)',
 GRANT ALL ON ALL ROUTINES IN SCHEMA testns TO PUBLIC;
 
 SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testfunc(int)', 'EXECUTE'); -- true
--- SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testagg(int)', 'EXECUTE'); -- true
+SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testagg(int)', 'EXECUTE'); -- true
 SELECT has_function_privilege('regress_priv_user1', 'testns.priv_testproc(int)', 'EXECUTE'); -- true
 
 \set VERBOSITY terse \\ -- suppress cascade details
@@ -1174,7 +1165,7 @@ drop table dep_priv_test;
 
 drop sequence x_seq;
 
--- DROP AGGREGATE priv_testagg1(int);
+DROP AGGREGATE priv_testagg1(int);
 DROP FUNCTION priv_testfunc2(int);
 DROP FUNCTION priv_testfunc4(boolean);
 DROP PROCEDURE priv_testproc1(int);
