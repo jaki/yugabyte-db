@@ -881,6 +881,7 @@ stmt :
 			| CopyStmt
 			| CreateCastStmt
 			| CreateDomainStmt
+			| CreateOpClassStmt
 			| CreateSchemaStmt
 			| CreateUserStmt
 			| CreatedbStmt
@@ -889,6 +890,7 @@ stmt :
 			| DeleteStmt
 			| DiscardStmt
 			| DropCastStmt
+			| DropOpClassStmt
 			| DropStmt
 			| DropdbStmt
 			| ExecuteStmt
@@ -969,7 +971,6 @@ stmt :
 			| CreateForeignServerStmt { parser_ybc_not_support(@1, "This statement"); }
 			| CreateForeignTableStmt { parser_ybc_not_support(@1, "This statement"); }
 			| CreateMatViewStmt { parser_ybc_not_support(@1, "This statement"); }
-			| CreateOpClassStmt { parser_ybc_not_support(@1, "This statement"); }
 			| CreateOpFamilyStmt { parser_ybc_not_support(@1, "This statement"); }
 			| CreatePublicationStmt { parser_ybc_not_support(@1, "This statement"); }
 			| AlterOpFamilyStmt { parser_ybc_not_support(@1, "This statement"); }
@@ -983,7 +984,6 @@ stmt :
 			| CreateUserMappingStmt { parser_ybc_not_support(@1, "This statement"); }
 			| DeclareCursorStmt { parser_ybc_not_support(@1, "This statement"); }
 			| DropAssertStmt { parser_ybc_not_support(@1, "This statement"); }
-			| DropOpClassStmt { parser_ybc_not_support(@1, "This statement"); }
 			| DropOpFamilyStmt { parser_ybc_not_support(@1, "This statement"); }
 			| DropPLangStmt { parser_ybc_not_support(@1, "This statement"); }
 			| DropSubscriptionStmt { parser_ybc_not_support(@1, "This statement"); }
@@ -6361,7 +6361,6 @@ CreateOpClassStmt:
 			CREATE OPERATOR CLASS any_name opt_default FOR TYPE_P Typename
 			USING access_method opt_opfamily AS opclass_item_list
 				{
-					parser_ybc_not_support(@1, "CREATE OPERATOR CLASS");
 					CreateOpClassStmt *n = makeNode(CreateOpClassStmt);
 					n->opclassname = $4;
 					n->isDefault = $5;
@@ -6520,7 +6519,6 @@ opclass_drop:
 DropOpClassStmt:
 			DROP OPERATOR CLASS any_name USING access_method opt_drop_behavior
 				{
-					parser_ybc_not_support(@1, "DROP OPERATOR CLASS");
 					DropStmt *n = makeNode(DropStmt);
 					n->objects = list_make1(lcons(makeString($6), $4));
 					n->removeType = OBJECT_OPCLASS;
@@ -6531,7 +6529,6 @@ DropOpClassStmt:
 				}
 			| DROP OPERATOR CLASS IF_P EXISTS any_name USING access_method opt_drop_behavior
 				{
-					parser_ybc_not_support(@1, "DROP OPERATOR CLASS");
 					DropStmt *n = makeNode(DropStmt);
 					n->objects = list_make1(lcons(makeString($8), $6));
 					n->removeType = OBJECT_OPCLASS;
