@@ -136,49 +136,54 @@ CREATE FUNCTION leak(integer,integer) RETURNS boolean
 CREATE OPERATOR <<< (procedure = leak, leftarg = integer, rightarg = integer,
                      restrict = scalarltsel);
 
--- -- view with leaky operator
--- CREATE VIEW atest12v AS
---   SELECT * FROM atest12 WHERE b <<< 5;
--- GRANT SELECT ON atest12v TO PUBLIC;
---
--- -- This plan should use nestloop, knowing that few rows will be selected.
--- EXPLAIN (COSTS OFF) SELECT * FROM atest12v x, atest12v y WHERE x.a = y.b;
---
--- -- And this one.
--- EXPLAIN (COSTS OFF) SELECT * FROM atest12 x, atest12 y
---   WHERE x.a = y.b and abs(y.a) <<< 5;
---
--- -- Check if regress_priv_user2 can break security.
--- SET SESSION AUTHORIZATION regress_priv_user2;
---
--- CREATE FUNCTION leak2(integer,integer) RETURNS boolean
---   AS $$begin raise notice 'leak % %', $1, $2; return $1 > $2; end$$
---   LANGUAGE plpgsql immutable;
--- CREATE OPERATOR >>> (procedure = leak2, leftarg = integer, rightarg = integer,
---                      restrict = scalargtsel);
---
--- -- This should not show any "leak" notices before failing.
--- EXPLAIN (COSTS OFF) SELECT * FROM atest12 WHERE a >>> 0;
---
--- -- This plan should use hashjoin, as it will expect many rows to be selected.
--- EXPLAIN (COSTS OFF) SELECT * FROM atest12v x, atest12v y WHERE x.a = y.b;
---
--- -- Now regress_priv_user1 grants sufficient access to regress_priv_user2.
--- SET SESSION AUTHORIZATION regress_priv_user1;
--- GRANT SELECT (a, b) ON atest12 TO PUBLIC;
--- SET SESSION AUTHORIZATION regress_priv_user2;
---
--- -- Now regress_priv_user2 will also get a good row estimate.
--- EXPLAIN (COSTS OFF) SELECT * FROM atest12v x, atest12v y WHERE x.a = y.b;
---
--- -- But not for this, due to lack of table-wide permissions needed
--- -- to make use of the expression index's statistics.
--- EXPLAIN (COSTS OFF) SELECT * FROM atest12 x, atest12 y
---   WHERE x.a = y.b and abs(y.a) <<< 5;
---
+-- view with leaky operator
+CREATE VIEW atest12v AS
+  SELECT * FROM atest12 WHERE b <<< 5;
+GRANT SELECT ON atest12v TO PUBLIC;
+
+-- This plan should use nestloop, knowing that few rows will be selected.
+-- TODO(jason): fix expected output when issue #1420 is closed or closing.
+EXPLAIN (COSTS OFF) SELECT * FROM atest12v x, atest12v y WHERE x.a = y.b;
+
+-- And this one.
+-- TODO(jason): fix expected output when issue #2076 is closed or closing.
+EXPLAIN (COSTS OFF) SELECT * FROM atest12 x, atest12 y
+  WHERE x.a = y.b and abs(y.a) <<< 5;
+
+-- Check if regress_priv_user2 can break security.
+SET SESSION AUTHORIZATION regress_priv_user2;
+
+CREATE FUNCTION leak2(integer,integer) RETURNS boolean
+  AS $$begin raise notice 'leak % %', $1, $2; return $1 > $2; end$$
+  LANGUAGE plpgsql immutable;
+CREATE OPERATOR >>> (procedure = leak2, leftarg = integer, rightarg = integer,
+                     restrict = scalargtsel);
+
+-- This should not show any "leak" notices before failing.
+EXPLAIN (COSTS OFF) SELECT * FROM atest12 WHERE a >>> 0;
+
+-- This plan should use hashjoin, as it will expect many rows to be selected.
+-- TODO(jason): fix expected output when issue #1420 is closed or closing.
+EXPLAIN (COSTS OFF) SELECT * FROM atest12v x, atest12v y WHERE x.a = y.b;
+
+-- Now regress_priv_user1 grants sufficient access to regress_priv_user2.
+SET SESSION AUTHORIZATION regress_priv_user1;
+GRANT SELECT (a, b) ON atest12 TO PUBLIC;
+SET SESSION AUTHORIZATION regress_priv_user2;
+
+-- Now regress_priv_user2 will also get a good row estimate.
+-- TODO(jason): fix expected output when issue #1420 is closed or closing.
+EXPLAIN (COSTS OFF) SELECT * FROM atest12v x, atest12v y WHERE x.a = y.b;
+
+-- But not for this, due to lack of table-wide permissions needed
+-- to make use of the expression index's statistics.
+-- TODO(jason): fix expected output when issue #1420 is closed or closing.
+EXPLAIN (COSTS OFF) SELECT * FROM atest12 x, atest12 y
+  WHERE x.a = y.b and abs(y.a) <<< 5;
+
 -- clean up (regress_priv_user1's objects are all dropped later)
--- DROP FUNCTION leak2(integer, integer) CASCADE;
---
+DROP FUNCTION leak2(integer, integer) CASCADE;
+
 
 -- groups
 
