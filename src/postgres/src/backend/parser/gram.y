@@ -902,6 +902,7 @@ stmt :
 			| RemoveOperStmt
 			| RenameStmt
 			| RevokeStmt
+			| RuleStmt
 			| SelectStmt
 			| TransactionStmt
 			| TruncateStmt
@@ -997,7 +998,6 @@ stmt :
 			| LoadStmt { parser_ybc_not_support(@1, "This statement"); }
 			| NotifyStmt { parser_ybc_not_support(@1, "This statement"); }
 			| ReindexStmt { parser_ybc_not_support(@1, "This statement"); }
-			| RuleStmt { parser_ybc_not_support(@1, "This statement"); }
 			| SecLabelStmt { parser_ybc_not_support(@1, "This statement"); }
 			| UnlistenStmt { parser_ybc_not_support(@1, "This statement"); }
 		;
@@ -6807,7 +6807,7 @@ drop_type_name:
 /* object types attached to a table */
 drop_type_name_on_any_name:
 			POLICY { parser_ybc_not_support(@1, "DROP POLICY"); $$ = OBJECT_POLICY; }
-			| RULE { parser_ybc_not_support(@1, "DROP RULE"); $$ = OBJECT_RULE; }
+			| RULE { $$ = OBJECT_RULE; }
 			| TRIGGER { parser_ybc_beta_feature(@1, "trigger"); $$ = OBJECT_TRIGGER; }
 		;
 
@@ -10425,7 +10425,6 @@ RuleStmt:	CREATE opt_or_replace RULE name AS
 			ON event TO qualified_name where_clause
 			DO opt_instead RuleActionList
 				{
-					parser_ybc_not_support(@1, "CREATE RULE");
 					RuleStmt *n = makeNode(RuleStmt);
 					n->replace = $2;
 					n->relation = $9;
