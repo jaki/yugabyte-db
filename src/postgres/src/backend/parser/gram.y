@@ -881,7 +881,6 @@ stmt :
 			| CopyStmt
 			| CreateCastStmt
 			| CreateDomainStmt
-			| CreateOpClassStmt
 			| CreateSchemaStmt
 			| CreateUserStmt
 			| CreatedbStmt
@@ -890,7 +889,6 @@ stmt :
 			| DeleteStmt
 			| DiscardStmt
 			| DropCastStmt
-			| DropOpClassStmt
 			| DropStmt
 			| DropdbStmt
 			| ExecuteStmt
@@ -916,7 +914,9 @@ stmt :
 			/* BETA features */
 			| AnalyzeStmt { parser_ybc_beta_feature(@1, "analyze"); }
 			| CreateFunctionStmt { parser_ybc_beta_feature(@1, "function"); }
+			| CreateOpClassStmt { parser_ybc_beta_feature(@1, "opclass"); }
 			| DoStmt { parser_ybc_beta_feature(@1, "function"); }
+			| DropOpClassStmt { parser_ybc_beta_feature(@1, "opclass"); }
 			| RemoveFuncStmt { parser_ybc_beta_feature(@1, "function"); }
 			| CreateTrigStmt { parser_ybc_beta_feature(@1, "trigger"); }
 			| CreateExtensionStmt { parser_ybc_beta_feature(@1, "extension"); }
