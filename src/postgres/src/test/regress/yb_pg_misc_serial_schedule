@@ -2,11 +2,10 @@
 #
 ####################################################################################################
 # Postgres Testsuites: Porting from PostgreSQL original tests.
-# This includes miscellaneous tests that are not yet characterized to a proper testsuite.
+# This includes miscellaneous tests that are not yet characterized to a proper testsuite.  Unlike
+# yb_pg_misc_independent_serial_schedule, the tests in this schedule have dependencies.
 ####################################################################################################
-test: yb_insert
-
-# Chain of dependencies for `yb_select`
+# Chain of dependencies for `yb_pg_create_function_2`, `yb_select`
 test: yb_pg_create_function_1
 test: yb_pg_create_type
 test: yb_pg_create_table
@@ -16,13 +15,4 @@ test: yb_pg_create_function_2
 # Dependency for `yb_select`
 test: yb_pg_copy
 
-test: yb_index_including
-test: yb_pg_create_aggregate
-test: yb_pg_create_function_3
-test: yb_pg_create_cast
 test: yb_select
-test: yb_pg_case
-test: yb_pg_rules
-test: yb_prepare
-test: yb_sequence
-test: yb_pg_identity
