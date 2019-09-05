@@ -754,28 +754,30 @@ REVOKE USAGE on DOMAIN priv_testdomain1 FROM PUBLIC;
 GRANT USAGE ON DOMAIN priv_testdomain1 TO regress_priv_user2;
 GRANT USAGE ON TYPE priv_testdomain1 TO regress_priv_user2; -- ok
 SET SESSION AUTHORIZATION regress_priv_user1;
--- -- commands that should fail
---
--- CREATE AGGREGATE priv_testagg1a(priv_testdomain1) (sfunc = int4_sum, stype = bigint);
---
--- CREATE DOMAIN priv_testdomain2a AS priv_testdomain1;
---
--- CREATE DOMAIN priv_testdomain3a AS int;
--- CREATE FUNCTION castfunc(int) RETURNS priv_testdomain3a AS $$ SELECT $1::priv_testdomain3a $$ LANGUAGE SQL;
--- CREATE CAST (priv_testdomain1 AS priv_testdomain3a) WITH FUNCTION castfunc(int);
--- DROP FUNCTION castfunc(int) CASCADE;
--- DROP DOMAIN priv_testdomain3a;
---
--- CREATE FUNCTION priv_testfunc5a(a priv_testdomain1) RETURNS int LANGUAGE SQL AS $$ SELECT $1 $$;
--- CREATE FUNCTION priv_testfunc6a(b int) RETURNS priv_testdomain1 LANGUAGE SQL AS $$ SELECT $1::priv_testdomain1 $$;
---
--- CREATE OPERATOR !+! (PROCEDURE = int4pl, LEFTARG = priv_testdomain1, RIGHTARG = priv_testdomain1);
---
--- CREATE TABLE test5a (a int, b priv_testdomain1);
--- CREATE TABLE test6a OF priv_testtype1;
--- CREATE TABLE test10a (a int[], b priv_testtype1[]);
---
--- CREATE TABLE test9a (a int, b int);
+-- commands that should fail
+CREATE AGGREGATE priv_testagg1a(priv_testdomain1) (sfunc = int4_sum, stype = bigint);
+ERROR:  permission denied for type priv_testdomain1
+CREATE DOMAIN priv_testdomain2a AS priv_testdomain1;
+ERROR:  permission denied for type priv_testdomain1
+CREATE DOMAIN priv_testdomain3a AS int;
+CREATE FUNCTION castfunc(int) RETURNS priv_testdomain3a AS $$ SELECT $1::priv_testdomain3a $$ LANGUAGE SQL;
+CREATE CAST (priv_testdomain1 AS priv_testdomain3a) WITH FUNCTION castfunc(int);
+ERROR:  permission denied for type priv_testdomain1
+DROP FUNCTION castfunc(int) CASCADE;
+DROP DOMAIN priv_testdomain3a;
+CREATE FUNCTION priv_testfunc5a(a priv_testdomain1) RETURNS int LANGUAGE SQL AS $$ SELECT $1 $$;
+ERROR:  permission denied for type priv_testdomain1
+CREATE FUNCTION priv_testfunc6a(b int) RETURNS priv_testdomain1 LANGUAGE SQL AS $$ SELECT $1::priv_testdomain1 $$;
+ERROR:  permission denied for type priv_testdomain1
+CREATE OPERATOR !+! (PROCEDURE = int4pl, LEFTARG = priv_testdomain1, RIGHTARG = priv_testdomain1);
+ERROR:  permission denied for type priv_testdomain1
+CREATE TABLE test5a (a int, b priv_testdomain1);
+ERROR:  permission denied for type priv_testdomain1
+CREATE TABLE test6a OF priv_testtype1;
+ERROR:  permission denied for type priv_testtype1
+CREATE TABLE test10a (a int[], b priv_testtype1[]);
+ERROR:  permission denied for type priv_testtype1
+CREATE TABLE test9a (a int, b int);
 -- ALTER TABLE test9a ADD COLUMN c priv_testdomain1;
 -- ALTER TABLE test9a ALTER COLUMN b TYPE priv_testdomain1;
 CREATE TYPE test7a AS (a int, b priv_testdomain1);
@@ -783,10 +785,10 @@ ERROR:  permission denied for type priv_testdomain1
 CREATE TYPE test8a AS (a int, b int);
 -- ALTER TYPE test8a ADD ATTRIBUTE c priv_testdomain1;
 -- ALTER TYPE test8a ALTER ATTRIBUTE b TYPE priv_testdomain1;
---
--- CREATE TABLE test11a AS (SELECT 1::priv_testdomain1 AS a);
---
--- REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
+CREATE TABLE test11a AS (SELECT 1::priv_testdomain1 AS a);
+ERROR:  permission denied for type priv_testdomain1
+REVOKE ALL ON TYPE priv_testtype1 FROM PUBLIC;
+ERROR:  permission denied for type priv_testtype1
 SET SESSION AUTHORIZATION regress_priv_user2;
 -- commands that should succeed
 CREATE AGGREGATE priv_testagg1b(priv_testdomain1) (sfunc = int4_sum, stype = bigint);
