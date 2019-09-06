@@ -11,7 +11,6 @@ test: yb_pg_create_aggregate
 test: yb_pg_create_function_3
 test: yb_pg_create_cast
 test: yb_pg_case
-test: yb_pg_rules
 test: yb_prepare
 test: yb_sequence
 test: yb_pg_identity
