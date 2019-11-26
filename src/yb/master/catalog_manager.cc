@@ -2849,9 +2849,14 @@ Status CatalogManager::DeleteTable(const DeleteTableRequestPB* req,
     table_locks[i]->Commit();
   }
 
-  for (int i = 0; i < tables.size(); i++) {
-    // Send a DeleteTablet() request to each tablet replica in the table.
-    DeleteTabletsAndSendRequests(tables[i]);
+  scoped_refptr<TableInfo> table;
+  RETURN_NOT_OK(FindTable(req->table(), &table));
+  const scoped_refptr<NamespaceInfo> ns = FindPtrOrNull(namespace_ids_map_, table->namespace_id());
+  if (!ns->colocated()) {
+    for (int i = 0; i < tables.size(); i++) {
+      // Send a DeleteTablet() request to each tablet replica in the table.
+      DeleteTabletsAndSendRequests(tables[i]);
+    }
   }
 
   // If there are any permissions granted on this table find them and delete them. This is necessary
