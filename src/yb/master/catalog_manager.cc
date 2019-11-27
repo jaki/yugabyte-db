@@ -2873,6 +2873,12 @@ Status CatalogManager::DeleteTable(const DeleteTableRequestPB* req,
             << req->table().DebugString() << " per request from " << RequestorString(rpc);
   // Asynchronously cleans up the final memory traces of the deleted database.
   background_tasks_->Wake();
+
+  // Force cleanup of colocated tables whose tablets are not deleted.
+  if (IsColocatedTable(*table)) {
+    CleanUpDeletedTables();
+  }
+
   return Status::OK();
 }
 
@@ -3018,7 +3024,9 @@ void CatalogManager::CleanUpDeletedTables() {
           // gotten to point 3, which would add further tasks for the deletes.
           //
           // However, HasTasks is cheaper than AreAllTabletsDeleted...
-          if (table->AreAllTabletsDeleted() || IsSystemTableUnlocked(*table)) {
+          if (table->AreAllTabletsDeleted() ||
+              IsSystemTableUnlocked(*table) ||
+              IsColocatedTable(*table)) {
             tables_to_delete.push_back(table);
             // TODO(bogdan): uncomment this once we also untangle catalog loader logic.
             // Since we have lock_, this table cannot be in the map AND be DELETED.
