@@ -450,6 +450,9 @@ class CatalogManager : public tserver::TabletPeerLookupIf {
   // Is the table a table created for colocated database?
   bool IsColocatedParentTable(const TableInfo& table) const;
 
+  // Is the table part of a colocated tablet?
+  bool IsColocatedTable(const TableInfo& table) const;
+
   // Is the table created by user?
   // Note that table can be regular table or index in this case.
   bool IsUserCreatedTable(const TableInfo& table) const;

@@ -2851,8 +2851,7 @@ Status CatalogManager::DeleteTable(const DeleteTableRequestPB* req,
 
   scoped_refptr<TableInfo> table;
   RETURN_NOT_OK(FindTable(req->table(), &table));
-  const scoped_refptr<NamespaceInfo> ns = FindPtrOrNull(namespace_ids_map_, table->namespace_id());
-  if (!ns->colocated()) {
+  if (!IsColocatedTable(*table)) {
     for (int i = 0; i < tables.size(); i++) {
       // Send a DeleteTablet() request to each tablet replica in the table.
       DeleteTabletsAndSendRequests(tables[i]);
@@ -3665,6 +3664,12 @@ bool CatalogManager::IsUserIndexUnlocked(const TableInfo& table) const {
 
 bool CatalogManager::IsColocatedParentTable(const TableInfo& table) const {
   return table.id().find(kColocatedParentTableIdSuffix) != std::string::npos;
+}
+
+bool CatalogManager::IsColocatedTable(const TableInfo& table) const {
+  const scoped_refptr<NamespaceInfo> ns = FindPtrOrNull(namespace_ids_map_, table.namespace_id());
+  // TODO: handling for nullptr (no ns may mean default, which cannot be colocated?, so false?)
+  return ns->colocated();
 }
 
 bool CatalogManager::IsSequencesSystemTable(const TableInfo& table) const {
