@@ -4177,18 +4177,28 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
   {
     // Lock the catalog to iterate over table_ids_map_.
     SharedLock<LockType> catalog_lock(lock_);
+    LOG(INFO) << "DROPPING " << database->name() << " " << database->id();
 
     // Delete tablets for each of user tables.
     for (const TableInfoMap::value_type& entry : *table_ids_map_) {
       scoped_refptr<TableInfo> table = entry.second;
       auto l = table->LockForWrite();
-      if (l->data().namespace_id() != database->id() || l->data().started_deleting()) {
+      if (l->data().namespace_id() != database->id() ||
+          l->data().pb.is_pg_shared_table() ||
+          l->data().started_deleting()) {
         continue;
       }
 
       if (IsSystemTableUnlocked(*table)) {
         sys_tables.push_back(table);
+        LOG(INFO) << "DROPPING SYSTEM " << l->data().pb.ShortDebugString();
       } else {
+        LOG(INFO) << "DROPPING USER " << l->data().pb.ShortDebugString();
+      }
+
+      // Delete the TableInfo records for both user and system tables, so we do not leave any
+      // tables in RUNNING state.
+      {
         // For regular (indexed) table, insert table info and lock in the front of the list. Else
         // for index table, append them to the end. We do so so that we will commit and delete the
         // indexed table first before its indexes.
@@ -4205,13 +4215,38 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
   for (auto &table : sys_tables) {
     RETURN_NOT_OK(sys_catalog_->DeleteYsqlSystemTable(table->id()));
   }
+  // TODO(bogdan): This does not look cheap...
+  // Remove all of these tables from the system tablet table_ids.
+  scoped_refptr<TabletInfo> sys_tablet = tablet_map_->find(kSysCatalogTabletId)->second;
+  auto tablet_lock = sys_tablet->LockForWrite();
+  unordered_set<TableId> table_ids;
+  table_ids.reserve(tablet_lock->data().pb.table_ids_size());
+  // Add all the table IDs into a set.
+  for (const auto& table_id : tablet_lock->data().pb.table_ids()) {
+    table_ids.insert(table_id);
+  }
+  // Remove all of the current system table IDs from the set.
+  for (const auto& table : sys_tables) {
+    table_ids.erase(table->id());
+  }
+  tablet_lock->mutable_data()->pb.clear_table_ids();
+  for (const auto& table_id : table_ids) {
+    tablet_lock->mutable_data()->pb.add_table_ids(table_id);
+  }
+  RETURN_NOT_OK(sys_catalog_->UpdateItem(sys_tablet.get(), leader_ready_term_));
+  tablet_lock->Commit();
   // Delete all tablets of user tables in the database as 1 batch RPC call.
   TRACE("Sending delete table batch RPC to sys catalog");
   vector<TableInfo *> user_tables_rpc;
   user_tables_rpc.reserve(user_tables.size());
-  for (auto &tbl : user_tables) {
-    user_tables_rpc.push_back(tbl.first.get());
+  for (auto &table_and_lock : user_tables) {
+    user_tables_rpc.push_back(table_and_lock.first.get());
+    auto &l = table_and_lock.second;
+    // Mark the table state as DELETING tablets.
+    l->mutable_data()->set_state(SysTablesEntryPB::DELETING,
+        Substitute("Started deleting at $0", LocalTimeAsString()));
   }
+  // Update all the table state in raft in bulk.
   Status s = sys_catalog_->UpdateItems(user_tables_rpc, leader_ready_term_);
   if (!s.ok()) {
     // The mutation will be aborted when 'l' exits the scope on early return.
@@ -4223,9 +4258,7 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
   for (auto &table_and_lock : user_tables) {
     auto &table = table_and_lock.first;
     auto &l = table_and_lock.second;
-    // cancel all table busywork and mark the table state as DELETING tablets.
-    l->mutable_data()->set_state(SysTablesEntryPB::DELETING,
-        Substitute("Started deleting at $0", LocalTimeAsString()));
+    // cancel all table busywork and commit the DELETING change.
     l->Commit();
     table->AbortTasks();
   }
