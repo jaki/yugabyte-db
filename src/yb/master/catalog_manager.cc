@@ -4184,10 +4184,10 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
       scoped_refptr<TableInfo> table = entry.second;
       auto l = table->LockForWrite();
       if (l->data().namespace_id() != database->id() ||
-          l->data().pb.is_pg_shared_table() ||
           l->data().started_deleting()) {
         continue;
       }
+      DCHECK(!l->data().pb.is_pg_shared_table());
 
       if (IsSystemTableUnlocked(*table)) {
         sys_tables.push_back(table);
