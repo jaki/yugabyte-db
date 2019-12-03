@@ -4193,15 +4193,13 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
         sys_tables.push_back(table);
       }
 
-      {
-        // For regular (indexed) table, insert table info and lock in the front of the list. Else
-        // for index table, append them to the end. We do so so that we will commit and delete the
-        // indexed table first before its indexes.
-        if (PROTO_IS_TABLE(l->data().pb)) {
-          tables.insert(tables.begin(), {table, std::move(l)});
-        } else {
-          tables.push_back({table, std::move(l)});
-        }
+      // For regular (indexed) table, insert table info and lock in the front of the list. Else for
+      // index table, append them to the end. We do so so that we will commit and delete the indexed
+      // table first before its indexes.
+      if (PROTO_IS_TABLE(l->data().pb)) {
+        tables.insert(tables.begin(), {table, std::move(l)});
+      } else {
+        tables.push_back({table, std::move(l)});
       }
     }
   }
