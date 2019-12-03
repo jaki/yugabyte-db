@@ -27,6 +27,7 @@ import java.util.Set;
 
 import static org.yb.AssertionWrappers.assertEquals;
 import static org.yb.AssertionWrappers.assertFalse;
+import static org.yb.AssertionWrappers.assertLessThan;
 
 import org.junit.runner.RunWith;
 import org.yb.minicluster.MiniYBCluster;
@@ -61,6 +62,38 @@ public class TestPgCatalogPersistence extends BasePgSQLTest {
       Thread.sleep(10 * MiniYBCluster.TSERVER_HEARTBEAT_INTERVAL_MS);
 
       assertEquals(0, getTableCountByKeyspace(keyspaceId));
+    }
+  }
+
+  @Test
+  public void testDropTable() throws Exception {
+    String dbname = "foo";
+    String tablename = "bar";
+
+    try (Statement statement = connection.createStatement()) {
+      // Run a few statements (DDLs) to increment the catalog version.
+      statement.execute(String.format("CREATE DATABASE %s", dbname));
+      String keyspaceId = findKeyspaceId(dbname);
+      int numTablesBefore = getTableCountByKeyspace(keyspaceId);
+      Connection connectionFoo = newConnectionBuilder()
+          .setDatabase(dbname)
+          .connect();
+      try (Statement statementFoo = connectionFoo.createStatement()) {
+        statementFoo.execute(String.format("CREATE TABLE %s (i int)", tablename));
+        int numTablesAfter = getTableCountByKeyspace(keyspaceId);
+        assertLessThan(numTablesBefore, numTablesAfter);
+        statementFoo.execute(String.format("DROP TABLE %s", tablename));
+      }
+
+      // Failover the master leader.
+      YBClient client = miniCluster.getClient();
+      LeaderStepDownResponse resp = client.masterLeaderStepDown();
+      assertFalse(resp.hasError());
+
+      // Wait a couple of seconds for the new master to become leader.
+      Thread.sleep(10 * MiniYBCluster.TSERVER_HEARTBEAT_INTERVAL_MS);
+
+      assertEquals(numTablesBefore, getTableCountByKeyspace(keyspaceId));
     }
   }
 
