@@ -4178,7 +4178,6 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
   {
     // Lock the catalog to iterate over table_ids_map_.
     SharedLock<LockType> catalog_lock(lock_);
-    LOG(INFO) << "DROPPING " << database->name() << " " << database->id();
 
     // Populate tables and sys_tables.
     for (const TableInfoMap::value_type& entry : *table_ids_map_) {
@@ -4192,9 +4191,6 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
 
       if (IsSystemTableUnlocked(*table)) {
         sys_tables.push_back(table);
-        LOG(INFO) << "DROPPING SYSTEM " << l->data().pb.ShortDebugString();
-      } else {
-        LOG(INFO) << "DROPPING USER " << l->data().pb.ShortDebugString();
       }
 
       {
