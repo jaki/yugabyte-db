@@ -4219,6 +4219,8 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
   // Remove all of these tables from the system tablet table_ids.
   scoped_refptr<TabletInfo> sys_tablet = tablet_map_->find(kSysCatalogTabletId)->second;
   auto tablet_lock = sys_tablet->LockForWrite();
+  const std::string sys_tablet_partition_key_start =
+      sys_tablet->metadata().dirty().pb.partition().partition_key_start();
   unordered_set<TableId> table_ids;
   table_ids.reserve(tablet_lock->data().pb.table_ids_size());
   // Add all the table IDs into a set.
@@ -4226,8 +4228,10 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
     table_ids.insert(table_id);
   }
   // Remove all of the current system table IDs from the set.
+  // Also, remove system tablet from system tables before DeleteTablet() RPC request.
   for (const auto& table : sys_tables) {
     table_ids.erase(table->id());
+    table->RemoveTablet(sys_tablet_partition_key_start);
   }
   tablet_lock->mutable_data()->pb.clear_table_ids();
   for (const auto& table_id : table_ids) {
