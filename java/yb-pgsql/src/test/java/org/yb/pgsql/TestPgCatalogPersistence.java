@@ -69,20 +69,14 @@ public class TestPgCatalogPersistence extends BasePgSQLTest {
   public void testDropTable() throws Exception {
     final int numTablesAfterCreateTable;
     final int NumTablesBeforeCreateTable;
-    final String dbname = "foo";
     final String keyspaceId;
     final String tablename = "bar";
 
+    keyspaceId = findKeyspaceId(DEFAULT_PG_DATABASE);
+    NumTablesBeforeCreateTable = getTableCountByKeyspace(keyspaceId);
+
     // Run a few statements (DDLs) to increment the catalog version.
     try (Statement statement = connection.createStatement()) {
-      statement.execute(String.format("CREATE DATABASE %s", dbname));
-    }
-    keyspaceId = findKeyspaceId(dbname);
-    NumTablesBeforeCreateTable = getTableCountByKeyspace(keyspaceId);
-    Connection connectionNew = newConnectionBuilder()
-        .setDatabase(dbname)
-        .connect();
-    try (Statement statement = connectionNew.createStatement()) {
       statement.execute(String.format("CREATE TABLE %s (i int)", tablename));
       numTablesAfterCreateTable = getTableCountByKeyspace(keyspaceId);
       assertLessThan(NumTablesBeforeCreateTable, numTablesAfterCreateTable);
