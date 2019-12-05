@@ -4183,8 +4183,7 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
     for (const TableInfoMap::value_type& entry : *table_ids_map_) {
       scoped_refptr<TableInfo> table = entry.second;
       auto l = table->LockForWrite();
-      if (l->data().namespace_id() != database->id() ||
-          l->data().started_deleting()) {
+      if (l->data().namespace_id() != database->id() || l->data().started_deleting()) {
         continue;
       }
       DCHECK(!l->data().pb.is_pg_shared_table());
