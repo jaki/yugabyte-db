@@ -460,7 +460,6 @@ void PgMiniTest::TestRowLockConflictMatrix() {
         Status status_commit = conn_a.Execute("COMMIT");
         ASSERT_OK(conn_b.Execute("COMMIT"));
         if (AreConflictingRowMarkTypes(row_mark_type_a, row_mark_type_b)) {
-          // There should be a conflict.
           if (result_select.ok()) {
             // Should conflict on COMMIT only.
             ASSERT_NOK(status_commit);
@@ -479,7 +478,6 @@ void PgMiniTest::TestRowLockConflictMatrix() {
                                 "Conflicts with higher priority transaction");
           }
         } else {
-          // There should not be a conflict.
           ASSERT_OK(result_select);
           ASSERT_OK(status_commit);
         }
