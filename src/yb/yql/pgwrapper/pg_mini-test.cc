@@ -15,8 +15,9 @@
 #include "yb/integration-tests/yb_mini_cluster_test_base.h"
 
 #include "yb/master/catalog_entity_info.h"
+#include "yb/master/catalog_manager.h"
 #include "yb/master/initial_sys_catalog_snapshot.h"
-#include "yb/master/mini_master.cc"
+#include "yb/master/mini_master.h"
 #include "yb/master/sys_catalog_constants.h"
 
 #include "yb/tserver/mini_tablet_server.h"
