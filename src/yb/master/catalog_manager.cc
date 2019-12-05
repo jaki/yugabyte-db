@@ -2716,7 +2716,7 @@ Status CatalogManager::DeleteIndexInfoFromTable(const TableId& indexed_table_id,
 // Delete a Table
 //  - Update the table state to "DELETING".
 //  - Issue DeleteTablet tasks to all said tablets.
-//  - Update all the underlying table states as "DELETED".
+//  - Update all the underlying tablet states as "DELETED".
 //
 // This order of events can help us guarantee that:
 //  - If a table is DELETING/DELETED, we do not add further tasks to it.
