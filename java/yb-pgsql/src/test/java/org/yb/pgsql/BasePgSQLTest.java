@@ -12,7 +12,6 @@
 //
 package org.yb.pgsql;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -41,11 +40,7 @@ import org.yb.util.EnvAndSysPropertyUtil;
 import org.yb.util.SanitizerUtil;
 
 import java.io.File;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -464,53 +459,6 @@ public class BasePgSQLTest extends BaseMiniClusterTest {
 
   protected static int getPgBackendPid(Connection connection) {
     return toPgConnection(connection).getBackendPID();
-  }
-
-  protected JsonElement getDumpEntitiesJsonElement() throws MalformedURLException, IOException {
-    // Any master should do.
-    MiniYBDaemon master = miniCluster.getMasters().values().iterator().next();
-    URL url = new URL(String.format("http://%s:%d/dump-entities",
-                                    master.getLocalhostIP(),
-                                    master.getWebPort()));
-
-    Scanner scanner = new Scanner(url.openConnection().getInputStream());
-    JsonParser parser = new JsonParser();
-    JsonElement tree = parser.parse(scanner.useDelimiter("\\A").next());
-    return tree;
-  }
-
-  protected String findKeyspaceId(String keyspaceName) throws Exception {
-    JsonElement tree;
-    try {
-      tree = getDumpEntitiesJsonElement();
-    } catch (IOException e) {
-      return null;
-    }
-    JsonArray keyspaces = tree.getAsJsonObject().get("keyspaces").getAsJsonArray();
-    for (JsonElement keyspace : keyspaces) {
-      JsonObject ko = keyspace.getAsJsonObject();
-      if (ko.get("keyspace_name").getAsString().equals(keyspaceName)) {
-        return ko.get("keyspace_id").getAsString();
-      }
-    }
-    return null;
-  }
-
-  protected int getTableCountByKeyspace(String keyspaceId) {
-    JsonElement tree;
-    try {
-      tree = getDumpEntitiesJsonElement();
-    } catch (IOException e) {
-      return -1;
-    }
-    JsonArray tables = tree.getAsJsonObject().get("tables").getAsJsonArray();
-    int tableCount = 0;
-    for (JsonElement table : tables) {
-      if (table.getAsJsonObject().get("keyspace_id").getAsString().equals(keyspaceId)) {
-        tableCount++;
-      }
-    }
-    return tableCount;
   }
 
   protected int getMetricCounter(String metricName) throws Exception {

@@ -33,10 +33,10 @@ import org.yb.minicluster.MiniYBCluster;
 import org.yb.util.YBTestRunnerNonTsanOnly;
 
 @RunWith(YBTestRunnerNonTsanOnly.class)
-public class TestPgCatalogPersistence extends BasePgSQLTest {
+public class TestPgCatalogVersionPersistence extends BasePgSQLTest {
 
   protected static final Logger LOG =
-      LoggerFactory.getLogger(TestPgCatalogPersistence.class);
+      LoggerFactory.getLogger(TestPgCatalogVersionPersistence.class);
 
   @Override
   protected int getReplicationFactor() {
@@ -44,31 +44,11 @@ public class TestPgCatalogPersistence extends BasePgSQLTest {
     return 3;
   }
 
-  @Test
-  public void testDropDatabase() throws Exception {
-    try (Statement statement = connection.createStatement()) {
-      // Run a few statements (DDLs) to increment the catalog version.
-      statement.execute("CREATE DATABASE foo");
-      String keyspaceId = findKeyspaceId("foo");
-      statement.execute("DROP DATABASE foo");
-
-      // Failover the master leader.
-      YBClient client = miniCluster.getClient();
-      LeaderStepDownResponse resp = client.masterLeaderStepDown();
-      assertFalse(resp.hasError());
-
-      // Wait a couple of seconds for the new master to become leader.
-      Thread.sleep(10 * MiniYBCluster.TSERVER_HEARTBEAT_INTERVAL_MS);
-
-      assertEquals(0, getTableCountByKeyspace(keyspaceId));
-    }
-  }
-
   /**
    * This unit test verifies that if the master changes the YSQL catalog (e.g. version) persists.
    */
   @Test
-  public void testCatalogVersion() throws Exception {
+  public void testMasterChange() throws Exception {
     Set<Row> expectedRows = new HashSet<>();
 
     try (Statement statement = connection.createStatement()) {
