@@ -81,6 +81,12 @@ class ThreadPool;
 template<class T>
 class AtomicGauge;
 
+namespace pgwrapper {
+
+class PgMiniTest_TestDropDatabasePersist_Test;
+
+}
+
 namespace tablet {
 
 struct TableInfo;
@@ -625,6 +631,7 @@ class CatalogManager : public tserver::TabletPeerLookupIf {
   friend class ::yb::master::ScopedLeaderSharedLock;
   friend class PermissionsManager;
 
+  FRIEND_TEST(pgwrapper::PgMiniTest, TestDropDatabasePersist);
   FRIEND_TEST(SysCatalogTest, TestCatalogManagerTasksTracker);
   FRIEND_TEST(SysCatalogTest, TestPrepareDefaultClusterConfig);
   FRIEND_TEST(SysCatalogTest, TestSysCatalogTablesOperations);

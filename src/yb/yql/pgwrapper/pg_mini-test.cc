@@ -14,7 +14,10 @@
 #include "yb/integration-tests/mini_cluster.h"
 #include "yb/integration-tests/yb_mini_cluster_test_base.h"
 
+#include "yb/master/catalog_entity_info.h"
 #include "yb/master/initial_sys_catalog_snapshot.h"
+#include "yb/master/mini_master.cc"
+#include "yb/master/sys_catalog_constants.h"
 
 #include "yb/tserver/mini_tablet_server.h"
 #include "yb/tserver/tablet_server.h"
@@ -692,6 +695,38 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(ForeignKeySerializable)) {
 
 TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(ForeignKeySnapshot)) {
   TestForeignKey(IsolationLevel::SNAPSHOT_ISOLATION);
+}
+
+TEST_F(PgMiniTest, TestDropDatabasePersist) {
+  const std::string kDatabaseName = "testdb";
+  PGConn conn = ASSERT_RESULT(Connect());
+  scoped_refptr<master::TabletInfo> sys_tablet =
+    cluster_.get()->leader_mini_master()->master()->catalog_manager()->tablet_map_->find(
+        master::kSysCatalogTabletId)->second;
+  int numTables1, numTables2, numTables3, numTables4;
+
+  {
+    auto tablet_lock = sys_tablet->LockForWrite();
+    numTables1 = tablet_lock->data().pb.table_ids_size();
+  }
+  ASSERT_OK(conn.ExecuteFormat("CREATE DATABASE $0", kDatabaseName));
+  {
+    auto tablet_lock = sys_tablet->LockForWrite();
+    numTables2 = tablet_lock->data().pb.table_ids_size();
+  }
+  ASSERT_OK(conn.ExecuteFormat("DROP DATABASE $0", kDatabaseName));
+  {
+    auto tablet_lock = sys_tablet->LockForWrite();
+    numTables3 = tablet_lock->data().pb.table_ids_size();
+  }
+  cluster_.get()->RestartSync();
+  {
+    auto tablet_lock = sys_tablet->LockForWrite();
+    numTables4 = tablet_lock->data().pb.table_ids_size();
+  }
+  ASSERT_LT(numTables1, numTables2);
+  ASSERT_EQ(numTables1, numTables3);
+  ASSERT_EQ(numTables1, numTables4);
 }
 
 } // namespace pgwrapper
