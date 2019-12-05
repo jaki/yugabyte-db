@@ -67,37 +67,34 @@ public class TestPgCatalogPersistence extends BasePgSQLTest {
 
   @Test
   public void testDropTable() throws Exception {
-    final int numTablesAfterCreateTable;
-    final int NumTablesBeforeCreateTable;
-    final String dbname = "foo";
-    final String keyspaceId;
-    final String tablename = "bar";
+    String dbname = "foo";
+    String tablename = "bar";
 
-    // Run a few statements (DDLs) to increment the catalog version.
     try (Statement statement = connection.createStatement()) {
+      // Run a few statements (DDLs) to increment the catalog version.
       statement.execute(String.format("CREATE DATABASE %s", dbname));
+      String keyspaceId = findKeyspaceId(dbname);
+      int numTablesBefore = getTableCountByKeyspace(keyspaceId);
+      Connection connectionFoo = newConnectionBuilder()
+          .setDatabase(dbname)
+          .connect();
+      try (Statement statementFoo = connectionFoo.createStatement()) {
+        statementFoo.execute(String.format("CREATE TABLE %s (i int)", tablename));
+        int numTablesAfter = getTableCountByKeyspace(keyspaceId);
+        assertLessThan(numTablesBefore, numTablesAfter);
+        statementFoo.execute(String.format("DROP TABLE %s", tablename));
+      }
+
+      // Failover the master leader.
+      YBClient client = miniCluster.getClient();
+      LeaderStepDownResponse resp = client.masterLeaderStepDown();
+      assertFalse(resp.hasError());
+
+      // Wait a couple of seconds for the new master to become leader.
+      Thread.sleep(10 * MiniYBCluster.TSERVER_HEARTBEAT_INTERVAL_MS);
+
+      assertEquals(numTablesBefore, getTableCountByKeyspace(keyspaceId));
     }
-    keyspaceId = findKeyspaceId(dbname);
-    NumTablesBeforeCreateTable = getTableCountByKeyspace(keyspaceId);
-    Connection connectionNew = newConnectionBuilder()
-        .setDatabase(dbname)
-        .connect();
-    try (Statement statement = connectionNew.createStatement()) {
-      statement.execute(String.format("CREATE TABLE %s (i int)", tablename));
-      numTablesAfterCreateTable = getTableCountByKeyspace(keyspaceId);
-      assertLessThan(NumTablesBeforeCreateTable, numTablesAfterCreateTable);
-      statement.execute(String.format("DROP TABLE %s", tablename));
-    }
-
-    // Failover the master leader.
-    YBClient client = miniCluster.getClient();
-    LeaderStepDownResponse resp = client.masterLeaderStepDown();
-    assertFalse(resp.hasError());
-
-    // Wait a couple of seconds for the new master to become leader.
-    Thread.sleep(10 * MiniYBCluster.TSERVER_HEARTBEAT_INTERVAL_MS);
-
-    assertEquals(NumTablesBeforeCreateTable, getTableCountByKeyspace(keyspaceId));
   }
 
   /**
