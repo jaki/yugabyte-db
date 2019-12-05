@@ -97,6 +97,10 @@ class PgMiniTest : public YBMiniClusterTestBase<MiniCluster> {
     return PGConn::Connect(pg_host_port_);
   }
 
+  Result<PGConn> ConnectToDB(const std::string &dbname) {
+    return PGConn::Connect(pg_host_port_, dbname);
+  }
+
   // Have several threads doing updates and several threads doing large scans in parallel.  If
   // deferrable is true, then the scans are in deferrable transactions, so no read restarts are
   // expected.  Otherwise, the scans are in transactions with snapshot isolation, so read restarts
