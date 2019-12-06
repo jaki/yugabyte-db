@@ -4232,8 +4232,12 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
   for (auto &table : sys_tables) {
     RETURN_NOT_OK(sys_catalog_->DeleteYsqlSystemTable(table->id()));
   }
+  TabletInfoPtr sys_tablet_info;
+  {
+    SharedLock<LockType> catalog_lock(lock_);
+    sys_tablet_info = tablet_map_->find(kSysCatalogTabletId)->second;
+  }
   // Remove these tables from the system catalog TabletInfo.
-  TabletInfoPtr sys_tablet_info = tablet_map_->find(kSysCatalogTabletId)->second;
   RETURN_NOT_OK(RemoveTableIdsFromTabletInfo(sys_tablet_info, sys_tables));
   // Remove the system catalog tablet from the in-memory TableInfo of each system table to prevent
   // the deletion of the system catalog tablet.
