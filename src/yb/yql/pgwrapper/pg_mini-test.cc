@@ -720,7 +720,7 @@ TEST_F(PgMiniTest, TestDropDatabasePersist) {
     auto tablet_lock = sys_tablet->LockForWrite();
     numTables3 = tablet_lock->data().pb.table_ids_size();
   }
-  ASSERT_OK(cluster_.get()->RestartSync());
+  ASSERT_OK(cluster_->RestartSync());
   {
     auto tablet_lock = sys_tablet->LockForWrite();
     numTables4 = tablet_lock->data().pb.table_ids_size();
