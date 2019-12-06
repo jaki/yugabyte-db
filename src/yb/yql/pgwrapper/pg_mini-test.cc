@@ -698,7 +698,7 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(ForeignKeySnapshot)) {
   TestForeignKey(IsolationLevel::SNAPSHOT_ISOLATION);
 }
 
-TEST_F(PgMiniTest, TestDropDatabasePersist) {
+TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(TestDropDatabasePersist)) {
   const std::string kDatabaseName = "testdb";
   PGConn conn = ASSERT_RESULT(Connect());
   scoped_refptr<master::TabletInfo> sys_tablet =
