@@ -2473,7 +2473,7 @@ TabletInfo* CatalogManager::CreateTabletInfo(TableInfo* table,
 }
 
 Status CatalogManager::RemoveTableIdsFromTabletInfo(
-    scoped_refptr<TabletInfo> tablet_info,
+    TabletInfoPtr tablet_info,
     vector<scoped_refptr<TableInfo>> tables_to_remove) {
   auto tablet_lock = tablet_info->LockForWrite();
   unordered_set<TableId> table_ids;
@@ -4233,7 +4233,7 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
     RETURN_NOT_OK(sys_catalog_->DeleteYsqlSystemTable(table->id()));
   }
   // Remove these tables from the system catalog TabletInfo.
-  scoped_refptr<TabletInfo> sys_tablet_info = tablet_map_->find(kSysCatalogTabletId)->second;
+  TabletInfoPtr sys_tablet_info = tablet_map_->find(kSysCatalogTabletId)->second;
   RETURN_NOT_OK(RemoveTableIdsFromTabletInfo(sys_tablet_info, sys_tables));
   // Remove the system catalog tablet from the in-memory TableInfo of each system table to prevent
   // the deletion of the system catalog tablet.
