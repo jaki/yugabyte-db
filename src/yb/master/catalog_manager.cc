@@ -2472,6 +2472,31 @@ TabletInfo* CatalogManager::CreateTabletInfo(TableInfo* table,
   return tablet;
 }
 
+Status CatalogManager::RemoveTableIdsFromTabletInfo(
+    scoped_refptr<TabletInfo> tablet_info,
+    vector<scoped_refptr<TableInfo>> tables_to_remove) {
+  auto tablet_lock = tablet_info->LockForWrite();
+  unordered_set<TableId> table_ids;
+
+  // TODO(bogdan): This does not look cheap...
+  table_ids.reserve(tablet_lock->data().pb.table_ids_size());
+  for (const auto& table_id : tablet_lock->data().pb.table_ids()) {
+    table_ids.insert(table_id);
+  }
+  for (const auto& table : tables_to_remove) {
+    table_ids.erase(table->id());
+  }
+
+  tablet_lock->mutable_data()->pb.clear_table_ids();
+  for (const auto& table_id : table_ids) {
+    tablet_lock->mutable_data()->pb.add_table_ids(table_id);
+  }
+
+  RETURN_NOT_OK(sys_catalog_->UpdateItem(tablet_info.get(), leader_ready_term_));
+  tablet_lock->Commit();
+  return Status::OK();
+}
+
 Status CatalogManager::FindTable(const TableIdentifierPB& table_identifier,
                                  scoped_refptr<TableInfo> *table_info) {
   SharedLock<LockType> l(lock_);
@@ -4207,31 +4232,19 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
   for (auto &table : sys_tables) {
     RETURN_NOT_OK(sys_catalog_->DeleteYsqlSystemTable(table->id()));
   }
-  // TODO(bogdan): This does not look cheap...
-  // Remove all of these tables from the system tablet table_ids.
-  scoped_refptr<TabletInfo> sys_tablet = tablet_map_->find(kSysCatalogTabletId)->second;
-  auto tablet_lock = sys_tablet->LockForWrite();
-  const std::string sys_tablet_partition_key_start =
-      sys_tablet->metadata().dirty().pb.partition().partition_key_start();
-  unordered_set<TableId> table_ids;
-  table_ids.reserve(tablet_lock->data().pb.table_ids_size());
-  // Add all the table IDs into a set.
-  for (const auto& table_id : tablet_lock->data().pb.table_ids()) {
-    table_ids.insert(table_id);
-  }
-  // Remove all of the current system table IDs from the set.
-  // Also, remove the system catalog tablet from the in-memory TableInfo of system tables to prevent
+  // Remove these tables from the system catalog TabletInfo.
+  scoped_refptr<TabletInfo> sys_tablet_info = tablet_map_->find(kSysCatalogTabletId)->second;
+  RETURN_NOT_OK(RemoveTableIdsFromTabletInfo(sys_tablet_info, sys_tables));
+  // Remove the system catalog tablet from the in-memory TableInfo of each system table to prevent
   // the deletion of the system catalog tablet.
-  for (const auto& table : sys_tables) {
-    table_ids.erase(table->id());
-    table->RemoveTablet(sys_tablet_partition_key_start);
+  {
+    auto tablet_lock = sys_tablet_info->LockForRead();
+    const std::string sys_tablet_partition_key_start =
+        sys_tablet_info->metadata().state().pb.partition().partition_key_start();
+    for (const auto& table : sys_tables) {
+      table->RemoveTablet(sys_tablet_partition_key_start);
+    }
   }
-  tablet_lock->mutable_data()->pb.clear_table_ids();
-  for (const auto& table_id : table_ids) {
-    tablet_lock->mutable_data()->pb.add_table_ids(table_id);
-  }
-  RETURN_NOT_OK(sys_catalog_->UpdateItem(sys_tablet.get(), leader_ready_term_));
-  tablet_lock->Commit();
   // Set all table states to DELETING as one batch RPC call.
   TRACE("Sending delete table batch RPC to sys catalog");
   vector<TableInfo *> tables_rpc;

@@ -757,6 +757,11 @@ class CatalogManager : public tserver::TabletPeerLookupIf {
   TabletInfo *CreateTabletInfo(TableInfo* table,
                                const PartitionPB& partition);
 
+  // Remove the specified entries from the protobuf field table_ids of a TabletInfo.
+  Status RemoveTableIdsFromTabletInfo(
+      scoped_refptr<TabletInfo> tablet_info,
+      vector<scoped_refptr<TableInfo>> tables_to_remove);
+
   // Add index info to the indexed table.
   CHECKED_STATUS AddIndexInfoToTable(const scoped_refptr<TableInfo>& indexed_table,
                                      const IndexInfoPB& index_info);
