@@ -4198,11 +4198,14 @@ Status CatalogManager::DeleteYsqlDatabase(const DeleteNamespaceRequestPB* req,
 Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& database,
                                           DeleteNamespaceResponsePB* resp,
                                           rpc::RpcContext* rpc) {
+  TabletInfoPtr sys_tablet_info;
   vector<pair<scoped_refptr<TableInfo>, unique_ptr<TableInfo::lock_type>>> tables;
   vector<scoped_refptr<TableInfo>> sys_tables;
   {
     // Lock the catalog to iterate over table_ids_map_.
     SharedLock<LockType> catalog_lock(lock_);
+
+    sys_tablet_info = tablet_map_->find(kSysCatalogTabletId)->second;
 
     // Populate tables and sys_tables.
     for (const TableInfoMap::value_type& entry : *table_ids_map_) {
@@ -4231,11 +4234,6 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
   TRACE("Sending system table delete RPCs");
   for (auto &table : sys_tables) {
     RETURN_NOT_OK(sys_catalog_->DeleteYsqlSystemTable(table->id()));
-  }
-  TabletInfoPtr sys_tablet_info;
-  {
-    SharedLock<LockType> catalog_lock(lock_);
-    sys_tablet_info = tablet_map_->find(kSysCatalogTabletId)->second;
   }
   // Remove these tables from the system catalog TabletInfo.
   RETURN_NOT_OK(RemoveTableIdsFromTabletInfo(sys_tablet_info, sys_tables));
