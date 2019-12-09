@@ -323,7 +323,7 @@ class CatalogManager : public tserver::TabletPeerLookupIf {
                                     DeleteNamespaceResponsePB* resp,
                                     rpc::RpcContext* rpc);
 
-  // Delete all user tables in YSQL database.
+  // Delete all tables in YSQL database.
   CHECKED_STATUS DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& database,
                                     DeleteNamespaceResponsePB* resp,
                                     rpc::RpcContext* rpc);
