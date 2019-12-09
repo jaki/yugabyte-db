@@ -4237,16 +4237,6 @@ Status CatalogManager::DeleteYsqlDBTables(const scoped_refptr<NamespaceInfo>& da
   }
   // Remove the system tables from the system catalog TabletInfo.
   RETURN_NOT_OK(RemoveTableIdsFromTabletInfo(sys_tablet_info, sys_tables));
-  // Remove the system catalog tablet from the in-memory TableInfo of each system table to prevent
-  // the deletion of the system catalog tablet.
-  {
-    auto tablet_lock = sys_tablet_info->LockForRead();
-    const std::string sys_tablet_partition_key_start =
-        sys_tablet_info->metadata().state().pb.partition().partition_key_start();
-    for (const auto& table : sys_tables) {
-      table->RemoveTablet(sys_tablet_partition_key_start);
-    }
-  }
   // Set all table states to DELETING as one batch RPC call.
   TRACE("Sending delete table batch RPC to sys catalog");
   vector<TableInfo *> tables_rpc;
@@ -5116,6 +5106,14 @@ void CatalogManager::DeleteTabletReplicas(
 }
 
 void CatalogManager::DeleteTabletsAndSendRequests(const scoped_refptr<TableInfo>& table) {
+  // Do not delete the system catalog tablet.
+  {
+    SharedLock<LockType> catalog_lock(lock_);
+    if (IsSystemTableUnlocked(*table)) {
+      return;
+    }
+  }
+
   vector<scoped_refptr<TabletInfo>> tablets;
   table->GetAllTablets(&tablets);
 
