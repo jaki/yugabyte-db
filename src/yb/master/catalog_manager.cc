@@ -2941,7 +2941,7 @@ void CatalogManager::CleanUpDeletedTables() {
           // gotten to point 3, which would add further tasks for the deletes.
           //
           // However, HasTasks is cheaper than AreAllTabletsDeleted...
-          if (table->AreAllTabletsDeleted()) {
+          if (table->AreAllTabletsDeleted() || IsSystemTableUnlocked(*table)) {
             tables_to_delete.push_back(table);
             // TODO(bogdan): uncomment this once we also untangle catalog loader logic.
             // Since we have lock_, this table cannot be in the map AND be DELETED.
