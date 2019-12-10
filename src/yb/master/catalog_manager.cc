@@ -1372,7 +1372,7 @@ Status CatalogManager::AbortTableCreation(TableInfo* table,
   CHECK_EQ(table_names_map_.erase({table_namespace_id, table_name}), 1)
       << "Unable to erase table named " << table_name << " from table names map.";
   CHECK_EQ(table_ids_map_checkout->erase(table_id), 1)
-      << "Unable to erase tablet with id " << table_id << " from tablet ids map.";
+      << "Unable to erase table with id " << table_id << " from table ids map.";
 
   return CheckIfNoLongerLeaderAndSetupError(s, resp);
 }
