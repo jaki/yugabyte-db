@@ -812,6 +812,9 @@ class CatalogManager : public tserver::TabletPeerLookupIf {
   void ExtractTabletsToProcess(TabletInfos *tablets_to_delete,
                                TabletInfos *tablets_to_process);
 
+  // Determine whether tables are deleting.
+  bool AreTablesDeleting();
+
   // Task that takes care of the tablet assignments/creations.
   // Loops through the "not created" tablets and sends a CreateTablet() request.
   CHECKED_STATUS ProcessPendingAssignments(const TabletInfos& tablets);

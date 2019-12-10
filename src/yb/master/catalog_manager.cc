@@ -2984,8 +2984,10 @@ void CatalogManager::CleanUpDeletedTables() {
   {
     std::lock_guard<LockType> l_map(lock_);
     for (auto table : tables_to_delete) {
-      // TODO(bogdan): Come back to this once we figure out all concurrency issues.
-      // table_ids_map_.erase(table->id());
+      auto table_ids_map_checkout = table_ids_map_.CheckOut();
+      CHECK_EQ(table_ids_map_checkout->erase(table->id()), 1)
+          << "Unable to erase table with id " << table->id() << " from table ids map.";
+      // No need to update table_names_map_ as that should be taken care of in DeleteTableInMemory.
     }
   }
   // Update the table in-memory info as DELETED after we've removed them from the maps.
@@ -5252,6 +5254,19 @@ void CatalogManager::ExtractTabletsToProcess(
     // Tablets not yet assigned or with a report just received.
     tablets_to_process->push_back(tablet);
   }
+}
+
+bool CatalogManager::AreTablesDeleting() {
+  SharedLock<LockType> catalog_lock(lock_);
+
+  for (const TableInfoMap::value_type& entry : *table_ids_map_) {
+    scoped_refptr<TableInfo> table = entry.second;
+    auto table_lock = table->LockForRead();
+    if (table_lock->data().started_deleting()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 struct DeferredAssignmentActions {
