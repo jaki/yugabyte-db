@@ -730,5 +730,24 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBUpdateSysTablet)) {
   ASSERT_EQ(numTables1, numTables4);
 }
 
+TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBMarkDeleted)) {
+  const std::string kDatabaseName = "testdb";
+  master::CatalogManager *catalog_manager =
+      cluster_->leader_mini_master()->master()->catalog_manager();
+  PGConn conn = ASSERT_RESULT(Connect());
+  constexpr auto kSleepTime = 2s;
+
+  ASSERT_FALSE(catalog_manager->AreTablesDeleting());
+  ASSERT_OK(conn.ExecuteFormat("CREATE DATABASE $0", kDatabaseName));
+  ASSERT_OK(conn.ExecuteFormat("DROP DATABASE $0", kDatabaseName));
+  // System tables should be deleting.
+  ASSERT_TRUE(catalog_manager->AreTablesDeleting());
+  std::this_thread::sleep_for(kSleepTime);
+  ASSERT_FALSE(catalog_manager->AreTablesDeleting());
+  // Make sure that the table deletions are persisted.
+  ASSERT_OK(cluster_->RestartSync());
+  ASSERT_FALSE(catalog_manager->AreTablesDeleting());
+}
+
 } // namespace pgwrapper
 } // namespace yb
