@@ -83,7 +83,7 @@ class AtomicGauge;
 
 namespace pgwrapper {
 
-class PgMiniTest_TestDropDatabasePersist_Test;
+class GTEST_TEST_CLASS_NAME_(PgMiniTest, DropDBUpdateSysTablet);
 
 }
 
@@ -631,7 +631,7 @@ class CatalogManager : public tserver::TabletPeerLookupIf {
   friend class ::yb::master::ScopedLeaderSharedLock;
   friend class PermissionsManager;
 
-  FRIEND_TEST(pgwrapper::PgMiniTest, TestDropDatabasePersist);
+  FRIEND_TEST(pgwrapper::PgMiniTest, DropDBUpdateSysTablet);
   FRIEND_TEST(SysCatalogTest, TestCatalogManagerTasksTracker);
   FRIEND_TEST(SysCatalogTest, TestPrepareDefaultClusterConfig);
   FRIEND_TEST(SysCatalogTest, TestSysCatalogTablesOperations);
