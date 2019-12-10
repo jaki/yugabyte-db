@@ -5262,7 +5262,7 @@ bool CatalogManager::AreTablesDeleting() {
   for (const TableInfoMap::value_type& entry : *table_ids_map_) {
     scoped_refptr<TableInfo> table = entry.second;
     auto table_lock = table->LockForRead();
-    if (table_lock->data().started_deleting()) {
+    if (table_lock->data().started_deleting() && !table_lock->data().is_deleted()) {
       return true;
     }
   }
