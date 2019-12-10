@@ -2984,10 +2984,8 @@ void CatalogManager::CleanUpDeletedTables() {
   {
     std::lock_guard<LockType> l_map(lock_);
     for (auto table : tables_to_delete) {
-      auto table_ids_map_checkout = table_ids_map_.CheckOut();
-      CHECK_EQ(table_ids_map_checkout->erase(table->id()), 1)
-          << "Unable to erase table with id " << table->id() << " from table ids map.";
-      // No need to update table_names_map_ as that should be taken care of in DeleteTableInMemory.
+      // TODO(bogdan): Come back to this once we figure out all concurrency issues.
+      // table_ids_map_.erase(table->id());
     }
   }
   // Update the table in-memory info as DELETED after we've removed them from the maps.
