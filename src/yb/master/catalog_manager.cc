@@ -2931,7 +2931,7 @@ void CatalogManager::CleanUpDeletedTables() {
         // memory even in DELETED state, for safely loading the respective tablets for them
         //
         // Eventually, for these DELETED tables, we'll want to also remove them from memory.
-        if (l->data().started_deleting() && !l->data().is_deleted()) {
+        if (l->data().is_deleting()) {
           // The current relevant order of operations during a DeleteTable is:
           // 1) Mark the table as DELETING
           // 2) Abort the current table tasks
@@ -5260,7 +5260,7 @@ bool CatalogManager::AreTablesDeleting() {
   for (const TableInfoMap::value_type& entry : *table_ids_map_) {
     scoped_refptr<TableInfo> table(entry.second);
     auto table_lock = table->LockForRead();
-    if (table_lock->data().started_deleting() && !table_lock->data().is_deleted()) {
+    if (table_lock->data().is_deleting()) {
       return true;
     }
   }
