@@ -749,7 +749,10 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBMarkDeleted)) {
   std::this_thread::sleep_for(kSleepTime);
   ASSERT_FALSE(catalog_manager->AreTablesDeleting());
   // Make sure that the table deletions are persisted.
+  ASSERT_EQ(catalog_manager, cluster_->leader_mini_master()->master()->catalog_manager());
   ASSERT_OK(cluster_->RestartSync());
+  ASSERT_NE(catalog_manager, cluster_->leader_mini_master()->master()->catalog_manager());
+  catalog_manager = cluster_->leader_mini_master()->master()->catalog_manager();
   ASSERT_FALSE(catalog_manager->AreTablesDeleting());
 }
 
