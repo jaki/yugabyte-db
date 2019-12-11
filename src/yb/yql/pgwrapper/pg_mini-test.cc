@@ -727,7 +727,7 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBUpdateSysTablet)) {
   // Make sure that the system catalog tablet table_ids is persisted.
   ASSERT_OK(cluster_->RestartSync());
   {
-    // Refresh local variables after RestartSync.
+    // Refresh stale local variables after RestartSync.
     catalog_manager = cluster_->leader_mini_master()->master()->catalog_manager();
     auto catalog_lock(catalog_manager->lock_);
     sys_tablet = catalog_manager->tablet_map_->find(master::kSysCatalogTabletId)->second;
@@ -757,7 +757,7 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBMarkDeleted)) {
   ASSERT_FALSE(catalog_manager->AreTablesDeleting());
   // Make sure that the table deletions are persisted.
   ASSERT_OK(cluster_->RestartSync());
-  // Refresh local variable after RestartSync.
+  // Refresh stale local variable after RestartSync.
   catalog_manager = cluster_->leader_mini_master()->master()->catalog_manager();
   ASSERT_FALSE(catalog_manager->AreTablesDeleting());
 }
