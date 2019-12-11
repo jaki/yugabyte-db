@@ -701,11 +701,15 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(ForeignKeySnapshot)) {
 TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBUpdateSysTablet)) {
   const std::string kDatabaseName = "testdb";
   int numTables1, numTables2, numTables3, numTables4;
+  master::CatalogManager *catalog_manager =
+      cluster_->leader_mini_master()->master()->catalog_manager();
   PGConn conn = ASSERT_RESULT(Connect());
-  scoped_refptr<master::TabletInfo> sys_tablet =
-    cluster_->leader_mini_master()->master()->catalog_manager()->tablet_map_->find(
-        master::kSysCatalogTabletId)->second;
+  scoped_refptr<master::TabletInfo> sys_tablet;
 
+  {
+    auto catalog_lock(catalog_manager->lock_);
+    sys_tablet = catalog_manager->tablet_map_->find(master::kSysCatalogTabletId)->second;
+  }
   {
     auto tablet_lock = sys_tablet->LockForWrite();
     numTables1 = tablet_lock->data().pb.table_ids_size();
