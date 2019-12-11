@@ -5260,6 +5260,8 @@ bool CatalogManager::AreTablesDeleting() {
   for (const TableInfoMap::value_type& entry : *table_ids_map_) {
     scoped_refptr<TableInfo> table(entry.second);
     auto table_lock = table->LockForRead();
+    // TODO(jason): possibly change this to started_deleting when we begin removing DELETED tables
+    // from table_ids_map_ (see CleanUpDeletedTables).
     if (table_lock->data().is_deleting()) {
       return true;
     }
