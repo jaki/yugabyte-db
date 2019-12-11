@@ -67,6 +67,7 @@
 #include "yb/util/random.h"
 #include "yb/util/rw_mutex.h"
 #include "yb/util/status.h"
+#include "yb/util/test_macros.h"
 #include "yb/util/version_tracker.h"
 #include "yb/gutil/thread_annotations.h"
 #include "yb/master/catalog_entity_info.h"
@@ -84,10 +85,10 @@ class AtomicGauge;
 
 namespace pgwrapper {
 
-class GTEST_TEST_CLASS_NAME_(PgMiniTest, DISABLED_DropDBMarkDeleted);
-class GTEST_TEST_CLASS_NAME_(PgMiniTest, DropDBMarkDeleted);
-class GTEST_TEST_CLASS_NAME_(PgMiniTest, DISABLED_DropDBUpdateSysTablet);
-class GTEST_TEST_CLASS_NAME_(PgMiniTest, DropDBUpdateSysTablet);
+#define CALL_GTEST_TEST_CLASS_NAME_(...) GTEST_TEST_CLASS_NAME_(__VA_ARGS__)
+class CALL_GTEST_TEST_CLASS_NAME_(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBMarkDeleted));
+class CALL_GTEST_TEST_CLASS_NAME_(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBUpdateSysTablet));
+#undef CALL_GTEST_TEST_CLASS_NAME_
 
 }
 
@@ -635,10 +636,10 @@ class CatalogManager : public tserver::TabletPeerLookupIf {
   friend class ::yb::master::ScopedLeaderSharedLock;
   friend class PermissionsManager;
 
-  FRIEND_TEST(pgwrapper::PgMiniTest, DISABLED_DropDBMarkDeleted);
-  FRIEND_TEST(pgwrapper::PgMiniTest, DropDBMarkDeleted);
-  FRIEND_TEST(pgwrapper::PgMiniTest, DISABLED_DropDBUpdateSysTablet);
-  FRIEND_TEST(pgwrapper::PgMiniTest, DropDBUpdateSysTablet);
+#define CALL_FRIEND_TEST(...) FRIEND_TEST(__VA_ARGS__)
+  CALL_FRIEND_TEST(pgwrapper::PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBMarkDeleted));
+  CALL_FRIEND_TEST(pgwrapper::PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBUpdateSysTablet));
+#undef CALL_FRIEND_TEST
   FRIEND_TEST(SysCatalogTest, TestCatalogManagerTasksTracker);
   FRIEND_TEST(SysCatalogTest, TestPrepareDefaultClusterConfig);
   FRIEND_TEST(SysCatalogTest, TestSysCatalogTablesOperations);
