@@ -5258,7 +5258,7 @@ bool CatalogManager::AreTablesDeleting() {
   SharedLock<LockType> catalog_lock(lock_);
 
   for (const TableInfoMap::value_type& entry : *table_ids_map_) {
-    scoped_refptr<TableInfo> table = entry.second;
+    scoped_refptr<TableInfo> table(entry.second);
     auto table_lock = table->LockForRead();
     if (table_lock->data().started_deleting() && !table_lock->data().is_deleted()) {
       return true;
