@@ -43,6 +43,7 @@
 
 #include <boost/optional/optional_fwd.hpp>
 #include <boost/functional/hash.hpp>
+#include <gtest/internal/gtest-internal.h>
 
 #include "yb/common/entity_ids.h"
 #include "yb/common/index.h"
