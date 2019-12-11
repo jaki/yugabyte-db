@@ -3675,6 +3675,7 @@ bool CatalogManager::IsColocatedParentTable(const TableInfo& table) const {
 }
 
 bool CatalogManager::IsColocatedTable(const TableInfo& table) const {
+  SharedLock<LockType> catalog_lock(lock_);
   const scoped_refptr<NamespaceInfo> ns = FindPtrOrNull(namespace_ids_map_, table.namespace_id());
   // TODO: handling for nullptr (no ns may mean default, which cannot be colocated?, so false?)
   return ns->colocated();
