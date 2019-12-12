@@ -724,7 +724,14 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBUpdateSysTablet)) {
     auto tablet_lock = sys_tablet->LockForWrite();
     numTables3 = tablet_lock->data().pb.table_ids_size();
   }
+  // Make sure that the system catalog tablet table_ids is persisted.
   ASSERT_OK(cluster_->RestartSync());
+  {
+    // Refresh local variables after RestartSync.
+    catalog_manager = cluster_->leader_mini_master()->master()->catalog_manager();
+    auto catalog_lock(catalog_manager->lock_);
+    sys_tablet = catalog_manager->tablet_map_->find(master::kSysCatalogTabletId)->second;
+  }
   {
     auto tablet_lock = sys_tablet->LockForWrite();
     numTables4 = tablet_lock->data().pb.table_ids_size();
