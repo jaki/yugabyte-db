@@ -2851,7 +2851,7 @@ Status CatalogManager::DeleteTable(const DeleteTableRequestPB* req,
 
   scoped_refptr<TableInfo> table;
   RETURN_NOT_OK(FindTable(req->table(), &table));
-  if (!IsColocatedTable(*table)) {
+  if (!table->colocated()) {
     for (int i = 0; i < tables.size(); i++) {
       // Send a DeleteTablet() request to each tablet replica in the table.
       DeleteTabletsAndSendRequests(tables[i]);
@@ -2875,7 +2875,7 @@ Status CatalogManager::DeleteTable(const DeleteTableRequestPB* req,
   background_tasks_->Wake();
 
   // Force cleanup of colocated tables whose tablets are not deleted.
-  if (IsColocatedTable(*table)) {
+  if (table->colocated()) {
     CleanUpDeletedTables();
   }
 
@@ -3026,7 +3026,7 @@ void CatalogManager::CleanUpDeletedTables() {
           // However, HasTasks is cheaper than AreAllTabletsDeleted...
           if (table->AreAllTabletsDeleted() ||
               IsSystemTableUnlocked(*table) ||
-              IsColocatedTable(*table)) {
+              table->colocated()) {
             tables_to_delete.push_back(table);
             // TODO(bogdan): uncomment this once we also untangle catalog loader logic.
             // Since we have lock_, this table cannot be in the map AND be DELETED.
@@ -3672,13 +3672,6 @@ bool CatalogManager::IsUserIndexUnlocked(const TableInfo& table) const {
 
 bool CatalogManager::IsColocatedParentTable(const TableInfo& table) const {
   return table.id().find(kColocatedParentTableIdSuffix) != std::string::npos;
-}
-
-bool CatalogManager::IsColocatedTable(const TableInfo& table) const {
-  SharedLock<LockType> catalog_lock(lock_);
-  const scoped_refptr<NamespaceInfo> ns = FindPtrOrNull(namespace_ids_map_, table.namespace_id());
-  // TODO: handling for nullptr (no ns may mean default, which cannot be colocated?, so false?)
-  return ns->colocated();
 }
 
 bool CatalogManager::IsSequencesSystemTable(const TableInfo& table) const {
