@@ -762,5 +762,46 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBMarkDeleted)) {
   ASSERT_FALSE(catalog_manager->AreTablesDeleting());
 }
 
+TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBWithTables)) {
+  const std::string kDatabaseName = "testdb";
+  const std::string kTableName = "testt";
+  constexpr auto kSleepTime = 4s;
+  int num_tables_before, num_tables_after;
+  master::CatalogManager *catalog_manager =
+      cluster_->leader_mini_master()->master()->catalog_manager();
+  PGConn conn = ASSERT_RESULT(Connect());
+  scoped_refptr<master::TabletInfo> sys_tablet;
+
+  {
+    auto catalog_lock(catalog_manager->lock_);
+    sys_tablet = catalog_manager->tablet_map_->find(master::kSysCatalogTabletId)->second;
+  }
+  {
+    auto tablet_lock = sys_tablet->LockForWrite();
+    num_tables_before = tablet_lock->data().pb.table_ids_size();
+  }
+  ASSERT_OK(conn.ExecuteFormat("CREATE DATABASE $0", kDatabaseName));
+  ASSERT_OK(conn.ExecuteFormat("CREATE TABLE $0 (i int)", kTableName));
+  ASSERT_OK(conn.ExecuteFormat("INSERT INTO $0 (i) VALUES (1), (2), (3)", kTableName));
+  ASSERT_OK(conn.ExecuteFormat("DROP DATABASE $0", kDatabaseName));
+  ASSERT_TRUE(catalog_manager->AreTablesDeleting());
+  std::this_thread::sleep_for(kSleepTime);
+  ASSERT_FALSE(catalog_manager->AreTablesDeleting());
+  // Make sure that the table deletions are persisted.
+  ASSERT_OK(cluster_->RestartSync());
+  {
+    // Refresh stale local variables after RestartSync.
+    catalog_manager = cluster_->leader_mini_master()->master()->catalog_manager();
+    auto catalog_lock(catalog_manager->lock_);
+    sys_tablet = catalog_manager->tablet_map_->find(master::kSysCatalogTabletId)->second;
+  }
+  ASSERT_FALSE(catalog_manager->AreTablesDeleting());
+  {
+    auto tablet_lock = sys_tablet->LockForWrite();
+    num_tables_after = tablet_lock->data().pb.table_ids_size();
+  }
+  ASSERT_EQ(num_tables_before, num_tables_after);
+}
+
 } // namespace pgwrapper
 } // namespace yb
