@@ -743,10 +743,10 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBUpdateSysTablet)) {
 
 TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBMarkDeleted)) {
   const std::string kDatabaseName = "testdb";
+  constexpr auto kSleepTime = 4s;
   master::CatalogManager *catalog_manager =
       cluster_->leader_mini_master()->master()->catalog_manager();
   PGConn conn = ASSERT_RESULT(Connect());
-  constexpr auto kSleepTime = 4s;
 
   ASSERT_FALSE(catalog_manager->AreTablesDeleting());
   ASSERT_OK(conn.ExecuteFormat("CREATE DATABASE $0", kDatabaseName));
