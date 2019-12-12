@@ -2851,11 +2851,9 @@ Status CatalogManager::DeleteTable(const DeleteTableRequestPB* req,
 
   scoped_refptr<TableInfo> table;
   RETURN_NOT_OK(FindTable(req->table(), &table));
-  if (!table->colocated()) {
-    for (int i = 0; i < tables.size(); i++) {
-      // Send a DeleteTablet() request to each tablet replica in the table.
-      DeleteTabletsAndSendRequests(tables[i]);
-    }
+  for (int i = 0; i < tables.size(); i++) {
+    // Send a DeleteTablet() request to each tablet replica in the table.
+    DeleteTabletsAndSendRequests(tables[i]);
   }
 
   // If there are any permissions granted on this table find them and delete them. This is necessary
@@ -5224,6 +5222,10 @@ void CatalogManager::DeleteTabletsAndSendRequests(const scoped_refptr<TableInfo>
     if (IsSystemTableUnlocked(*table)) {
       return;
     }
+  }
+  // Do not delete the tablet of a colocated table.
+  if (table->colocated()) {
+    return;
   }
 
   vector<scoped_refptr<TabletInfo>> tablets;
