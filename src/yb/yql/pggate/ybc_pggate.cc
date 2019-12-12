@@ -130,6 +130,10 @@ YBCStatus YBCPgNewCreateDatabase(YBCPgSession pg_session,
                                               source_database_oid, next_oid, handle));
 }
 
+YBCStatus YBCPgCreateDatabaseSetColocated(YBCPgStatement handle, bool colocated) {
+  return ToYBCStatus(pgapi->CreateDatabaseSetColocated(handle, colocated));
+}
+
 YBCStatus YBCPgExecCreateDatabase(YBCPgStatement handle) {
   return ToYBCStatus(pgapi->ExecCreateDatabase(handle));
 }
@@ -262,6 +266,10 @@ YBCStatus YBCPgCreateTableAddColumn(YBCPgStatement handle, const char *attr_name
 
 YBCStatus YBCPgCreateTableSetNumTablets(YBCPgStatement handle, int32_t num_tablets) {
   return ToYBCStatus(pgapi->CreateTableSetNumTablets(handle, num_tablets));
+}
+
+YBCStatus YBCPgCreateTableSetColocated(YBCPgStatement handle, bool colocated) {
+  return ToYBCStatus(pgapi->CreateTableSetColocated(handle, colocated));
 }
 
 YBCStatus YBCPgExecCreateTable(YBCPgStatement handle) {

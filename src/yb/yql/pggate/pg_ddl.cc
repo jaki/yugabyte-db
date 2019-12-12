@@ -58,7 +58,7 @@ PgCreateDatabase::~PgCreateDatabase() {
 
 Status PgCreateDatabase::Exec() {
   return pg_session_->CreateDatabase(database_name_, database_oid_, source_database_oid_,
-                                     next_oid_);
+                                     next_oid_, colocated_);
 }
 
 PgDropDatabase::PgDropDatabase(PgSession::ScopedRefPtr pg_session,
@@ -166,6 +166,11 @@ Status PgCreateTable::SetNumTablets(int32_t num_tablets) {
   return Status::OK();
 }
 
+Status PgCreateTable::SetColocated(bool colocated) {
+  colocated_ = colocated;
+  return Status::OK();
+}
+
 Status PgCreateTable::Exec() {
   // Construct schema.
   client::YBSchema schema;
@@ -189,7 +194,8 @@ Status PgCreateTable::Exec() {
   table_creator->table_name(table_name_).table_type(client::YBTableType::PGSQL_TABLE_TYPE)
                 .table_id(table_id_.GetYBTableId())
                 .num_tablets(num_tablets_)
-                .schema(&schema);
+                .schema(&schema)
+                .colocated(colocated_);
   if (is_pg_catalog_table_) {
     table_creator->is_pg_catalog_table();
   }
@@ -221,7 +227,9 @@ Status PgCreateTable::Exec() {
     if (s.IsNotFound()) {
       return STATUS(InvalidArgument, "Database not found", table_name_.namespace_name());
     }
-    return STATUS_FORMAT(InvalidArgument, "Invalid table definition: $0", s.ToString());
+    return STATUS_FORMAT(
+        InvalidArgument, "Invalid table definition: $0",
+        s.ToString(false /* include_file_and_line */, false /* include_code */));
   }
 
   return Status::OK();

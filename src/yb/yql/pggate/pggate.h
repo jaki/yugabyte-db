@@ -145,6 +145,7 @@ class PgApiImpl {
                                    PgOid source_database_oid,
                                    PgOid next_oid,
                                    PgStatement **handle);
+  CHECKED_STATUS CreateDatabaseSetColocated(PgStatement *handle, bool colocated);
   CHECKED_STATUS ExecCreateDatabase(PgStatement *handle);
 
   // Drop database.
@@ -189,6 +190,8 @@ class PgApiImpl {
                                       bool is_range, bool is_desc, bool is_nulls_first);
 
   CHECKED_STATUS CreateTableSetNumTablets(PgStatement *handle, int32_t num_tablets);
+
+  CHECKED_STATUS CreateTableSetColocated(PgStatement *handle, bool colocated);
 
   CHECKED_STATUS ExecCreateTable(PgStatement *handle);
 

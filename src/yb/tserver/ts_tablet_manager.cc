@@ -641,7 +641,8 @@ Status TSTabletManager::CreateNewTablet(
     const PartitionSchema &partition_schema,
     const boost::optional<IndexInfo>& index_info,
     RaftConfigPB config,
-    TabletPeerPtr *tablet_peer) {
+    TabletPeerPtr *tablet_peer,
+    bool colocated) {
   if (state() != MANAGER_RUNNING) {
     return STATUS_FORMAT(IllegalState, "Manager is not running: $0", state());
   }
@@ -677,8 +678,10 @@ Status TSTabletManager::CreateNewTablet(
   RaftGroupMetadataPtr meta;
   string data_root_dir;
   string wal_root_dir;
-  GetAndRegisterDataAndWalDir(fs_manager_, table_id, tablet_id, table_type,
-                              &data_root_dir, &wal_root_dir);
+  if (!colocated) {
+    GetAndRegisterDataAndWalDir(fs_manager_, table_id, tablet_id, table_type,
+                                &data_root_dir, &wal_root_dir);
+  }
   Status create_status = RaftGroupMetadata::CreateNew(fs_manager_,
                                                    table_id,
                                                    tablet_id,
@@ -693,7 +696,8 @@ Status TSTabletManager::CreateNewTablet(
                                                    TABLET_DATA_READY,
                                                    &meta,
                                                    data_root_dir,
-                                                   wal_root_dir);
+                                                   wal_root_dir,
+                                                   colocated);
   if (!create_status.ok()) {
     UnregisterDataWalDir(table_id, tablet_id, table_type, data_root_dir, wal_root_dir);
   }

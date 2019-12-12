@@ -17,6 +17,7 @@
 #include "yb/yql/pgwrapper/libpq_utils.h"
 #include "yb/yql/pgwrapper/libpq_test_base.h"
 
+#include "yb/master/catalog_manager.h"
 #include "yb/common/common.pb.h"
 
 using namespace std::literals;
@@ -788,6 +789,59 @@ TEST_F(PgLibPqTest, CatalogManagerMapsTest) {
       {YQL_DATABASE_PGSQL, ns_id, "test_db_renamed", "bar"}, &schema, &partition_schema));
   ASSERT_EQ(schema.num_columns(), 1);
   ASSERT_EQ(schema.Column(0).name(), "b");
+}
+
+namespace {
+Result<string> GetTableIdByTableName(
+    client::YBClient* client, const string& namespace_name, const string& table_name) {
+  std::vector<yb::client::YBTableName> tables;
+  RETURN_NOT_OK(client->ListTables(&tables));
+  for (const auto& t : tables) {
+    if (t.namespace_name() == namespace_name && t.table_name() == table_name) {
+      return t.table_id();
+    }
+  }
+  return STATUS(NotFound, "The table does not exist");
+}
+} // namespace
+
+TEST_F(PgLibPqTest, TabletColocationTest) {
+  auto conn = ASSERT_RESULT(Connect());
+  ASSERT_OK(conn.Execute("CREATE DATABASE test_db with colocated = true"));
+  conn = ASSERT_RESULT(ConnectToDB("test_db"));
+  auto client = ASSERT_RESULT(cluster_->CreateClient());
+
+  string ns_id;
+  auto list_result = client->ListNamespaces(YQL_DATABASE_PGSQL);
+  ASSERT_OK(list_result);
+  for (const auto& ns : list_result.get()) {
+    if (ns.name() == "test_db") {
+      ns_id = ns.id();
+    }
+  }
+  ASSERT_FALSE(ns_id.empty());
+
+  // A dummy table with one tablet should be created when the database is created.
+  google::protobuf::RepeatedPtrField<master::TabletLocationsPB> tablets;
+  ASSERT_OK(
+      client->GetTabletsFromTableId(ns_id + master::kColocatedParentTableIdSuffix, 0, &tablets));
+  ASSERT_EQ(tablets.size(), 1);
+  auto shared_tablet_id = tablets[0].tablet_id();
+
+  // Create a range partition table, the table should share the tablet with the dummy table.
+  ASSERT_OK(conn.Execute("CREATE TABLE foo (a INT, PRIMARY KEY (a ASC))"));
+  auto table_id = ASSERT_RESULT(GetTableIdByTableName(client.get(), "test_db", "foo"));
+  ASSERT_OK(client->GetTabletsFromTableId(table_id, 0, &tablets));
+  ASSERT_EQ(tablets.size(), 1);
+  ASSERT_EQ(tablets[0].tablet_id(), shared_tablet_id);
+
+  // Create a hash partition table and opt out of using the colocated tablet.
+  ASSERT_OK(conn.Execute("CREATE TABLE bar (a INT) WITH (colocated = false)"));
+  table_id = ASSERT_RESULT(GetTableIdByTableName(client.get(), "test_db", "bar"));
+  ASSERT_OK(client->GetTabletsFromTableId(table_id, 0, &tablets));
+  for (auto& tablet : tablets) {
+    ASSERT_NE(tablet.tablet_id(), shared_tablet_id);
+  }
 }
 
 } // namespace pgwrapper

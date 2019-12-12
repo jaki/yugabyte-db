@@ -108,6 +108,7 @@ YBCStatus YBCPgNewCreateDatabase(YBCPgSession pg_session,
                                  YBCPgOid source_database_oid,
                                  YBCPgOid next_oid,
                                  YBCPgStatement *handle);
+YBCStatus YBCPgCreateDatabaseSetColocated(YBCPgStatement handle, bool colocated);
 YBCStatus YBCPgExecCreateDatabase(YBCPgStatement handle);
 
 // Drop database.
@@ -155,6 +156,8 @@ YBCStatus YBCPgCreateTableAddColumn(YBCPgStatement handle, const char *attr_name
                                     bool is_desc, bool is_nulls_first);
 
 YBCStatus YBCPgCreateTableSetNumTablets(YBCPgStatement handle, int32_t num_tablets);
+
+YBCStatus YBCPgCreateTableSetColocated(YBCPgStatement handle, bool colocated);
 
 YBCStatus YBCPgExecCreateTable(YBCPgStatement handle);
 

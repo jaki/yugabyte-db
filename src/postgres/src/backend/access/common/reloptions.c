@@ -147,6 +147,15 @@ static relopt_bool boolRelOpts[] =
 		},
 		false
 	},
+	{
+		{
+			"colocated",
+			"Set to false to opt-out of colocated database",
+			RELOPT_KIND_HEAP,
+			AccessExclusiveLock
+		},
+		true
+	},
 	/* list terminator */
 	{{NULL}}
 };
@@ -1382,7 +1391,8 @@ default_reloptions(Datum reloptions, bool validate, relopt_kind kind)
 		{"parallel_workers", RELOPT_TYPE_INT,
 		offsetof(StdRdOptions, parallel_workers)},
 		{"vacuum_cleanup_index_scale_factor", RELOPT_TYPE_REAL,
-		offsetof(StdRdOptions, vacuum_cleanup_index_scale_factor)}
+		offsetof(StdRdOptions, vacuum_cleanup_index_scale_factor)},
+		{"colocated", RELOPT_TYPE_BOOL, offsetof(StdRdOptions, colocated)}
 	};
 
 	options = parseRelOptions(reloptions, validate, kind, &numoptions);

@@ -284,6 +284,16 @@ Status PgApiImpl::NewCreateDatabase(PgSession *pg_session,
   return Status::OK();
 }
 
+Status PgApiImpl::CreateDatabaseSetColocated(PgStatement *handle, bool colocated) {
+  if (!PgStatement::IsValidStmt(handle, StmtOp::STMT_CREATE_DATABASE)) {
+    // Invalid handle.
+    return STATUS(InvalidArgument, "Invalid statment handle");
+  }
+
+  down_cast<PgCreateDatabase*>(handle)->set_colocated(colocated);
+  return Status::OK();
+}
+
 Status PgApiImpl::ExecCreateDatabase(PgStatement *handle) {
   if (!PgStatement::IsValidStmt(handle, StmtOp::STMT_CREATE_DATABASE)) {
     // Invalid handle.
@@ -384,6 +394,14 @@ Status PgApiImpl::CreateTableSetNumTablets(PgStatement *handle, int32_t num_tabl
     return STATUS(InvalidArgument, "Invalid statement handle");
   }
   return down_cast<PgCreateTable*>(handle)->SetNumTablets(num_tablets);
+}
+
+Status PgApiImpl::CreateTableSetColocated(PgStatement *handle, bool colocated) {
+  if (!PgStatement::IsValidStmt(handle, StmtOp::STMT_CREATE_TABLE)) {
+    // Invalid handle.
+    return STATUS(InvalidArgument, "Invalid statement handle");
+  }
+  return down_cast<PgCreateTable*>(handle)->SetColocated(colocated);
 }
 
 Status PgApiImpl::ExecCreateTable(PgStatement *handle) {

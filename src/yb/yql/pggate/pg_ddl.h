@@ -56,11 +56,14 @@ class PgCreateDatabase : public PgDdl {
   // Execute.
   CHECKED_STATUS Exec();
 
+  void set_colocated(bool colocated) { colocated_ = colocated; }
+
  private:
   const char *database_name_;
   const PgOid database_oid_;
   const PgOid source_database_oid_;
   const PgOid next_oid_;
+  bool colocated_ = false;
 };
 
 class PgDropDatabase : public PgDdl {
@@ -165,6 +168,8 @@ class PgCreateTable : public PgDdl {
   // Specify the number of tablets explicitly.
   virtual CHECKED_STATUS SetNumTablets(int32_t num_tablets);
 
+  virtual CHECKED_STATUS SetColocated(bool colocated);
+
   // Execute.
   virtual CHECKED_STATUS Exec();
 
@@ -184,6 +189,7 @@ class PgCreateTable : public PgDdl {
   bool is_pg_catalog_table_;
   bool is_shared_table_;
   bool if_not_exist_;
+  bool colocated_ = true;
   boost::optional<YBHashSchema> hash_schema_;
   std::vector<std::string> range_columns_;
   client::YBSchemaBuilder schema_builder_;

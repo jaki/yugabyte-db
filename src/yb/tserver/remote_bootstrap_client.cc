@@ -300,6 +300,7 @@ Status RemoteBootstrapClient::Start(const string& bootstrap_peer_uuid,
   }
 
   const TableId table_id = resp.superblock().primary_table_id();
+  const bool colocated = resp.superblock().colocated();
   const tablet::TableInfoPB* table_ptr = nullptr;
   for (auto& table_pb : kv_store->tables()) {
     if (table_pb.table_id() == table_id) {
@@ -384,7 +385,7 @@ Status RemoteBootstrapClient::Start(const string& bootstrap_peer_uuid,
     PartitionSchema partition_schema;
     RETURN_NOT_OK(PartitionSchema::FromPB(table.partition_schema(), schema, &partition_schema));
     // Create the superblock on disk.
-    if (ts_manager != nullptr) {
+    if (ts_manager != nullptr && !colocated) {
       ts_manager->GetAndRegisterDataAndWalDir(fs_manager_,
                                               table_id,
                                               tablet_id_,
@@ -409,7 +410,8 @@ Status RemoteBootstrapClient::Start(const string& bootstrap_peer_uuid,
                                                      tablet::TABLET_DATA_COPYING,
                                                      &meta_,
                                                      data_root_dir,
-                                                     wal_root_dir);
+                                                     wal_root_dir,
+                                                     colocated);
     if (ts_manager != nullptr && !create_status.ok()) {
       ts_manager->UnregisterDataWalDir(table_id,
                                        tablet_id_,

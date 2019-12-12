@@ -343,7 +343,11 @@ transformCreateStmt(CreateStmt *stmt, const char *queryString)
                     errmsg("Users cannot create system catalog tables.")));
       }
     }
-    else
+    else if (strcmp(def->defname, "colocated") == 0)
+	{
+		(void) defGetBoolean(def);
+	}
+	else
     {
       ereport(WARNING,
               (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),

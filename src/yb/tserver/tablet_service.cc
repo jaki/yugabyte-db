@@ -687,7 +687,7 @@ void TabletServiceAdminImpl::CreateTablet(const CreateTabletRequestPB* req,
   s = server_->tablet_manager()->CreateNewTablet(req->table_id(), req->tablet_id(), partition,
       req->table_name(), req->table_type(), schema, partition_schema,
       req->has_index_info() ? boost::optional<IndexInfo>(req->index_info()) : boost::none,
-      req->config(), /* tablet_peer */ nullptr);
+      req->config(), /* tablet_peer */ nullptr, req->colocated());
   if (PREDICT_FALSE(!s.ok())) {
     TabletServerErrorPB::Code code;
     if (s.IsAlreadyPresent()) {
@@ -819,6 +819,28 @@ void TabletServiceAdminImpl::CountIntents(
     total_intents += *num_intents;
   }
   resp->set_num_intents(total_intents);
+  context.RespondSuccess();
+}
+
+void TabletServiceAdminImpl::AddTableToTablet(
+    const AddTableToTabletRequestPB* req, AddTableToTabletResponsePB* resp,
+    rpc::RpcContext context) {
+  auto tablet_id = req->tablet_id();
+
+  auto tablet =
+      LookupLeaderTabletOrRespond(server_->tablet_peer_lookup(), req->tablet_id(), resp, &context);
+  if (!tablet) {
+    return;
+  }
+
+  tserver::ChangeMetadataRequestPB change_req;
+  *change_req.mutable_add_table() = req->add_table();
+  change_req.set_tablet_id(tablet_id);
+  Status s = tablet::SyncReplicateChangeMetadataOperation(
+      &change_req, tablet.peer.get(), tablet.leader_term);
+  if (PREDICT_FALSE(!s.ok())) {
+    SetupErrorAndRespond(resp->mutable_error(), s, &context);
+  }
   context.RespondSuccess();
 }
 
