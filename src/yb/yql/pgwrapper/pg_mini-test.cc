@@ -700,11 +700,11 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(ForeignKeySnapshot)) {
 
 TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBUpdateSysTablet)) {
   const std::string kDatabaseName = "testdb";
-  int num_tables_1, num_tables_2, num_tables_3, num_tables_4;
   master::CatalogManager *catalog_manager =
       cluster_->leader_mini_master()->master()->catalog_manager();
   PGConn conn = ASSERT_RESULT(Connect());
   scoped_refptr<master::TabletInfo> sys_tablet;
+  std::array<int, 4> num_tables;
 
   {
     auto catalog_lock(catalog_manager->lock_);
@@ -712,17 +712,17 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBUpdateSysTablet)) {
   }
   {
     auto tablet_lock = sys_tablet->LockForWrite();
-    num_tables_1 = tablet_lock->data().pb.table_ids_size();
+    num_tables[0] = tablet_lock->data().pb.table_ids_size();
   }
   ASSERT_OK(conn.ExecuteFormat("CREATE DATABASE $0", kDatabaseName));
   {
     auto tablet_lock = sys_tablet->LockForWrite();
-    num_tables_2 = tablet_lock->data().pb.table_ids_size();
+    num_tables[1] = tablet_lock->data().pb.table_ids_size();
   }
   ASSERT_OK(conn.ExecuteFormat("DROP DATABASE $0", kDatabaseName));
   {
     auto tablet_lock = sys_tablet->LockForWrite();
-    num_tables_3 = tablet_lock->data().pb.table_ids_size();
+    num_tables[2] = tablet_lock->data().pb.table_ids_size();
   }
   // Make sure that the system catalog tablet table_ids is persisted.
   ASSERT_OK(cluster_->RestartSync());
@@ -734,11 +734,11 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBUpdateSysTablet)) {
   }
   {
     auto tablet_lock = sys_tablet->LockForWrite();
-    num_tables_4 = tablet_lock->data().pb.table_ids_size();
+    num_tables[3] = tablet_lock->data().pb.table_ids_size();
   }
-  ASSERT_LT(num_tables_1, num_tables_2);
-  ASSERT_EQ(num_tables_1, num_tables_3);
-  ASSERT_EQ(num_tables_1, num_tables_4);
+  ASSERT_LT(num_tables[0], num_tables[1]);
+  ASSERT_EQ(num_tables[0], num_tables[2]);
+  ASSERT_EQ(num_tables[0], num_tables[3]);
 }
 
 TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBMarkDeleted)) {
