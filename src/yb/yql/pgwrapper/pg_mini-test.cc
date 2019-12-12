@@ -781,8 +781,10 @@ TEST_F(PgMiniTest, YB_DISABLE_TEST_IN_TSAN(DropDBWithTables)) {
     num_tables_before = tablet_lock->data().pb.table_ids_size();
   }
   ASSERT_OK(conn.ExecuteFormat("CREATE DATABASE $0", kDatabaseName));
-  ASSERT_OK(conn.ExecuteFormat("CREATE TABLE $0 (i int)", kTableName));
-  ASSERT_OK(conn.ExecuteFormat("INSERT INTO $0 (i) VALUES (1), (2), (3)", kTableName));
+  for (int i = 0; i < 10; ++i) {
+    ASSERT_OK(conn.ExecuteFormat("CREATE TABLE $0$1 (i int)", kTableName, i));
+  }
+  ASSERT_OK(conn.ExecuteFormat("INSERT INTO $0$1 (i) VALUES (1), (2), (3)", kTableName, 5));
   ASSERT_OK(conn.ExecuteFormat("DROP DATABASE $0", kDatabaseName));
   ASSERT_TRUE(catalog_manager->AreTablesDeleting());
   std::this_thread::sleep_for(kSleepTime);
