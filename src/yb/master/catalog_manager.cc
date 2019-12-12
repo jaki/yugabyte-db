@@ -2873,12 +2873,6 @@ Status CatalogManager::DeleteTable(const DeleteTableRequestPB* req,
             << req->table().DebugString() << " per request from " << RequestorString(rpc);
   // Asynchronously cleans up the final memory traces of the deleted database.
   background_tasks_->Wake();
-
-  // Force cleanup of colocated tables whose tablets are not deleted.
-  if (table->colocated()) {
-    CleanUpDeletedTables();
-  }
-
   return Status::OK();
 }
 
