@@ -2851,9 +2851,9 @@ Status CatalogManager::DeleteTable(const DeleteTableRequestPB* req,
 
   scoped_refptr<TableInfo> table;
   RETURN_NOT_OK(FindTable(req->table(), &table));
-  for (int i = 0; i < tables.size(); i++) {
+  for (const scoped_refptr<TableInfo> &table : tables) {
     // Send a DeleteTablet() request to each tablet replica in the table.
-    DeleteTabletsAndSendRequests(tables[i]);
+    DeleteTabletsAndSendRequests(table);
   }
 
   // If there are any permissions granted on this table find them and delete them. This is necessary
