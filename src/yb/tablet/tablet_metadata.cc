@@ -671,7 +671,7 @@ void RaftGroupMetadata::SetSchema(const Schema& schema,
                                                           index_map,
                                                           deleted_cols,
                                                           version));
-  VLOG_WITH_PREFIX(1) << raft_group_id_ << " Updating to Schema version " << version
+  VLOG_WITH_PREFIX(1) << "Updating to Schema version " << version
                       << " from\n" << yb::ToString(kv_store_.tables[primary_table_id_])
                       << "\nto\n" << yb::ToString(new_table_info);
   kv_store_.tables[primary_table_id_].swap(new_table_info);
