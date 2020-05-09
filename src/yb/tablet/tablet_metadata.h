@@ -212,6 +212,7 @@ class RaftGroupMetadata : public RefCountedThreadSafe<RaftGroupMetadata> {
   Result<const TableInfo*> GetTableInfo(const TableId& table_id) const;
 
   Result<TableInfo*> GetTableInfo(const TableId& table_id);
+  Result<TableInfo*> GetTableInfoUnlocked(const TableId& table_id);
 
   const RaftGroupId& raft_group_id() const {
     DCHECK_NE(state_, kNotLoadedYet);

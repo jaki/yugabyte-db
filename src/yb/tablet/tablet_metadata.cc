@@ -365,6 +365,10 @@ Result<const TableInfo*> RaftGroupMetadata::GetTableInfo(const std::string& tabl
 
 Result<TableInfo*> RaftGroupMetadata::GetTableInfo(const std::string& table_id) {
   std::lock_guard<MutexType> lock(data_mutex_);
+  return GetTableInfoUnlocked(table_id);
+}
+
+Result<TableInfo*> RaftGroupMetadata::GetTableInfoUnlocked(const std::string& table_id) {
   const auto& tables = kv_store_.tables;
   const auto id = !table_id.empty() ? table_id : primary_table_id_;
   const auto iter = tables.find(id);
