@@ -663,18 +663,34 @@ void RaftGroupMetadata::ToSuperBlockUnlocked(RaftGroupReplicaSuperBlockPB* super
 void RaftGroupMetadata::SetSchema(const Schema& schema,
                                   const IndexMap& index_map,
                                   const std::vector<DeletedColumn>& deleted_cols,
-                                  const uint32_t version) {
+                                  const uint32_t version,
+                                  const std::string& table_id) {
+  std::string target_table_id;
   DCHECK(schema.has_column_ids());
   std::lock_guard<MutexType> lock(data_mutex_);
-  std::unique_ptr<TableInfo> new_table_info(new TableInfo(*primary_table_info_unlocked(),
+  if (table_id.empty()) {
+    target_table_id = primary_table_id_;
+  } else {
+    target_table_id = table_id;
+  }
+
+  auto result = GetTableInfo(target_table_id);
+  DCHECK(result.ok());
+  std::unique_ptr<TableInfo> new_table_info(new TableInfo(*result.get(),
                                                           schema,
                                                           index_map,
                                                           deleted_cols,
                                                           version));
-  VLOG_WITH_PREFIX(1) << "Updating to Schema version " << version
-                      << " from\n" << yb::ToString(kv_store_.tables[primary_table_id_])
-                      << "\nto\n" << yb::ToString(new_table_info);
-  kv_store_.tables[primary_table_id_].swap(new_table_info);
+  if (target_table_id == primary_table_id_) {
+    VLOG_WITH_PREFIX(1) << "Updating to Schema version " << version
+                        << " from\n" << yb::ToString(kv_store_.tables[target_table_id])
+                        << "\nto\n" << yb::ToString(new_table_info);
+  } else {
+    VLOG_WITH_PREFIX(1) << "Updating table " << target_table_id << " to Schema version " << version
+                        << " from\n" << yb::ToString(kv_store_.tables[target_table_id])
+                        << "\nto\n" << yb::ToString(new_table_info);
+  }
+  kv_store_.tables[target_table_id].swap(new_table_info);
   if (new_table_info) {
     kv_store_.old_tables.push_back(std::move(new_table_info));
   }
@@ -745,27 +761,6 @@ void RaftGroupMetadata::RemoveTable(const std::string& table_id) {
   std::lock_guard<MutexType> lock(data_mutex_);
   auto& tables = kv_store_.tables;
   tables.erase(table_id);
-}
-
-void RaftGroupMetadata::AlterTable(const std::string& table_id,
-                                   const Schema& schema,
-                                   const IndexMap& index_map,
-                                   const std::vector<DeletedColumn>& deleted_cols,
-                                   const uint32_t version) {
-  DCHECK(schema.has_column_ids());
-  std::lock_guard<MutexType> lock(data_mutex_);
-  auto result = GetTableInfo(table_id);
-  DCHECK(result.ok());
-  std::unique_ptr<TableInfo> new_table_info(new TableInfo(*result.get(),
-                                                          schema,
-                                                          index_map,
-                                                          deleted_cols,
-                                                          version));
-  VLOG_WITH_PREFIX(1) << "Updating table " << table_id << " to Schema version " << version
-                      << " from\n" << yb::ToString(kv_store_.tables[table_id])
-                      << "\nto\n" << yb::ToString(new_table_info);
-  kv_store_.tables[table_id].swap(new_table_info);
-  // TODO(jason): figure out whether adding to kv_store_.old_tables is necessary.
 }
 
 string RaftGroupMetadata::data_root_dir() const {

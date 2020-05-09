@@ -326,10 +326,12 @@ class RaftGroupMetadata : public RefCountedThreadSafe<RaftGroupMetadata> {
   // /mnt/d0/yb-data/tserver/wals
   std::string wal_root_dir() const;
 
+  // Set table_id for altering the schema of a colocated user table.
   void SetSchema(const Schema& schema,
                  const IndexMap& index_map,
                  const std::vector<DeletedColumn>& deleted_cols,
-                 const uint32_t version);
+                 const uint32_t version,
+                 const std::string& table_id = "");
 
   void SetPartitionSchema(const PartitionSchema& partition_schema);
 
@@ -345,13 +347,6 @@ class RaftGroupMetadata : public RefCountedThreadSafe<RaftGroupMetadata> {
                 const uint32_t schema_version);
 
   void RemoveTable(const std::string& table_id);
-
-  // SetSchema for colocated tables.
-  void AlterTable(const std::string& table_id,
-                  const Schema& schema,
-                  const IndexMap& index_map,
-                  const std::vector<DeletedColumn>& deleted_cols,
-                  const uint32_t version);
 
   // Set / get the remote bootstrap / tablet data state.
   void set_tablet_data_state(TabletDataState state);
