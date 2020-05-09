@@ -747,6 +747,27 @@ void RaftGroupMetadata::RemoveTable(const std::string& table_id) {
   tables.erase(table_id);
 }
 
+void RaftGroupMetadata::AlterTable(const std::string& table_id,
+                                   const Schema& schema,
+                                   const IndexMap& index_map,
+                                   const std::vector<DeletedColumn>& deleted_cols,
+                                   const uint32_t version) {
+  DCHECK(schema.has_column_ids());
+  std::lock_guard<MutexType> lock(data_mutex_);
+  auto result = GetTableInfo(table_id);
+  DCHECK(result.ok());
+  std::unique_ptr<TableInfo> new_table_info(new TableInfo(*result.get(),
+                                                          schema,
+                                                          index_map,
+                                                          deleted_cols,
+                                                          version));
+  VLOG_WITH_PREFIX(1) << "Updating table " << table_id << " to Schema version " << version
+                      << " from\n" << yb::ToString(kv_store_.tables[table_id])
+                      << "\nto\n" << yb::ToString(new_table_info);
+  kv_store_.tables[table_id].swap(new_table_info);
+  // TODO(jason): figure out whether adding to kv_store_.old_tables is necessary.
+}
+
 string RaftGroupMetadata::data_root_dir() const {
   const auto& rocksdb_dir = kv_store_.rocksdb_dir;
   if (rocksdb_dir.empty()) {

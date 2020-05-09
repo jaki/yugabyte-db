@@ -346,6 +346,13 @@ class RaftGroupMetadata : public RefCountedThreadSafe<RaftGroupMetadata> {
 
   void RemoveTable(const std::string& table_id);
 
+  // SetSchema for colocated tables.
+  void AlterTable(const std::string& table_id,
+                  const Schema& schema,
+                  const IndexMap& index_map,
+                  const std::vector<DeletedColumn>& deleted_cols,
+                  const uint32_t version);
+
   // Set / get the remote bootstrap / tablet data state.
   void set_tablet_data_state(TabletDataState state);
   TabletDataState tablet_data_state() const;
