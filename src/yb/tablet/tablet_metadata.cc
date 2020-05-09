@@ -678,7 +678,7 @@ void RaftGroupMetadata::SetSchema(const Schema& schema,
     target_table_id = table_id;
   }
 
-  auto result = GetTableInfo(target_table_id);
+  auto result = GetTableInfoUnlocked(target_table_id);
   DCHECK(result.ok());
   std::unique_ptr<TableInfo> new_table_info(new TableInfo(*result.get(),
                                                           schema,
