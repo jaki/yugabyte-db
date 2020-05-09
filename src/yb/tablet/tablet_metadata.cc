@@ -735,7 +735,7 @@ void RaftGroupMetadata::AddTable(const std::string& table_id,
           << new_table_info->ToString() << ", old table info: " << existing_table.ToString();
     }
   }
-  VLOG_WITH_PREFIX(1) << " Updating to Schema version " << schema_version
+  VLOG_WITH_PREFIX(1) << "Updating to Schema version " << schema_version
                       << " from\n" << yb::ToString(tables[table_id])
                       << "\nto\n" << yb::ToString(new_table_info);
   tables[table_id].swap(new_table_info);
