@@ -87,7 +87,7 @@ void AddIntent(
       << (N >= 1 ? Format("\nKEY[0]  : $0", SubDocKey::DebugSliceToString(key.parts[0])) : "")
       << (N >= 2 ? Format("\nKEY[1]  : $0", std::bitset<4>(static_cast<int>(key.parts[1][1]))) : "")
       << (value.num_parts >= 2 ? Format("\nVALUE[1]: $0", value.parts[1].ToDebugHexString()) : "")
-      << "\x1b[00m";;
+      << "\x1b[00m";
   handler->Put(key, value);
   if (reverse_value_prefix.empty()) {
     handler->Put(reverse_key, key);
@@ -174,7 +174,7 @@ Status NonTransactionalWriter::Apply(rocksdb::DirectWriteHandler* handler) {
     LOG(WARNING) << "\x1b[01;34mnontxn write"
                  << "\nKEY[0]  : " << SubDocKey::DebugSliceToString(key_parts[0])
                  << "\nVALUE   : " << key_value
-                 << "\x1b[00m";;
+                 << "\x1b[00m";
     handler->Put(key_parts, SliceParts(&key_value, 1));
 
     ++write_id;
@@ -551,7 +551,7 @@ Result<bool> ApplyIntentsContext::Entry(
     LOG(WARNING) << "\x1b[01;32mapply intent"
                  << "\nKEY[0]  : " << SubDocKey::DebugSliceToString(key_parts[0])
                  << "\nVALUE[1]: " << value_parts[1]
-                 << "\x1b[00m";;
+                 << "\x1b[00m";
 
     // Useful when debugging transaction failure.
 #if defined(DUMP_APPLY)
