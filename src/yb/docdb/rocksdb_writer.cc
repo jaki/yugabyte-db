@@ -82,16 +82,17 @@ void AddIntent(
       transaction_id.AsSlice(),
       doc_ht_slice,
   }};
-  LOG(WARNING) << __PRETTY_FUNCTION__;
-  if (N >= 1) LOG(WARNING) << "KEY[0]  : " << SubDocKey::DebugSliceToString(key.parts[0]);
-  if (N >= 2) LOG(WARNING) << "KEY[1]  : " << std::bitset<4>(static_cast<int>(key.parts[1][1]));
-  if (N >= 3) LOG(WARNING) << "KEY[2]  : " << DocHybridTime::DebugSliceToString(doc_ht_slice);
-  for (int i = 3; i < N; i++) {
-    LOG(WARNING) << "KEY[" << i << "]  : " << key.parts[i];
-  }
-  for (int i = 0; i < value.num_parts; i++) {
-    LOG(WARNING) << "VALUE[" << i << "]: " << value.parts[i];
-  }
+  LOG(WARNING)
+      << __PRETTY_FUNCTION__
+      << (N >= 1 ? Format("\nKEY[0]  : $0", SubDocKey::DebugSliceToString(key.parts[0])) : "")
+      << (N >= 2 ? Format("\nKEY[1]  : $0", std::bitset<4>(static_cast<int>(key.parts[1][1]))) : "")
+      << (N >= 3 ? Format("\nKEY[2]  : $0", DocHybridTime::DebugSliceToString(doc_ht_slice)) : "")
+      << (value.num_parts >= 1 ? Format("\nVALUE[0]: $0", value.parts[0]) : "")
+      << (value.num_parts >= 2 ? Format("\nVALUE[1]: $0", value.parts[1]) : "")
+      << (value.num_parts >= 3 ? Format("\nVALUE[2]: $0", value.parts[2]) : "")
+      << (value.num_parts >= 4 ? Format("\nVALUE[3]: $0", value.parts[3]) : "")
+      << (value.num_parts >= 5 ? Format("\nVALUE[4]: $0", value.parts[4]) : "")
+      ;;
   handler->Put(key, value);
   if (reverse_value_prefix.empty()) {
     handler->Put(reverse_key, key);
@@ -175,10 +176,11 @@ Status NonTransactionalWriter::Apply(rocksdb::DirectWriteHandler* handler) {
         doc_ht_buffer.EncodeWithValueType(hybrid_time, write_id),
     }};
     Slice key_value = kv_pair.value();
-    LOG(WARNING) << __PRETTY_FUNCTION__;
-    LOG(WARNING) << "KEY[0]  : " << SubDocKey::DebugSliceToString(key_parts[0]);
-    LOG(WARNING) << "KEY[1]  : " << hybrid_time.ToString();
-    LOG(WARNING) << "VALUE: " << key_value;
+    LOG(WARNING) << __PRETTY_FUNCTION__
+                 << "\nKEY[0]  : " << SubDocKey::DebugSliceToString(key_parts[0])
+                 << "\nKEY[1]  : " << hybrid_time.ToString()
+                 << "\nVALUE   : " << key_value
+                 ;;
     handler->Put(key_parts, SliceParts(&key_value, 1));
 
     ++write_id;
@@ -552,11 +554,12 @@ Result<bool> ApplyIntentsContext::Entry(
         intent.doc_ht,
         decoded_value.body,
     }};
-    LOG(WARNING) << __PRETTY_FUNCTION__;
-    LOG(WARNING) << "KEY[0]  : " << SubDocKey::DebugSliceToString(key_parts[0]);
-    LOG(WARNING) << "KEY[1]  : " << SubDocKey::DebugSliceToString(key_parts[1]);
-    LOG(WARNING) << "VALUE[0]: " << value_parts[0];
-    LOG(WARNING) << "VALUE[1]: " << value_parts[1];
+    LOG(WARNING) << __PRETTY_FUNCTION__
+                 << "\nKEY[0]  : " << SubDocKey::DebugSliceToString(key_parts[0])
+                 << "\nKEY[1]  : " << SubDocKey::DebugSliceToString(key_parts[1])
+                 << "\nVALUE[0]: " << value_parts[0]
+                 << "\nVALUE[1]: " << value_parts[1]
+                 ;;
 
     // Useful when debugging transaction failure.
 #if defined(DUMP_APPLY)
