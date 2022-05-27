@@ -12,6 +12,7 @@
 //
 
 #include "yb/docdb/rocksdb_writer.h"
+#include <bitset>
 
 #include "yb/common/row_mark.h"
 
@@ -81,6 +82,16 @@ void AddIntent(
       transaction_id.AsSlice(),
       doc_ht_slice,
   }};
+  LOG(WARNING) << __PRETTY_FUNCTION__;
+  if (N >= 1) LOG(WARNING) << "KEY[0]  : " << SubDocKey::DebugSliceToString(key.parts[0]);
+  if (N >= 2) LOG(WARNING) << "KEY[1]  : " << std::bitset<4>(static_cast<int>(key.parts[1][1]));
+  if (N >= 3) LOG(WARNING) << "KEY[2]  : " << DocHybridTime::DebugSliceToString(doc_ht_slice);
+  for (int i = 3; i < N; i++) {
+    LOG(WARNING) << "KEY[" << i << "]  : " << key.parts[i];
+  }
+  for (int i = 0; i < value.num_parts; i++) {
+    LOG(WARNING) << "VALUE[" << i << "]: " << value.parts[i];
+  }
   handler->Put(key, value);
   if (reverse_value_prefix.empty()) {
     handler->Put(reverse_key, key);
@@ -164,6 +175,10 @@ Status NonTransactionalWriter::Apply(rocksdb::DirectWriteHandler* handler) {
         doc_ht_buffer.EncodeWithValueType(hybrid_time, write_id),
     }};
     Slice key_value = kv_pair.value();
+    LOG(WARNING) << __PRETTY_FUNCTION__;
+    LOG(WARNING) << "KEY[0]  : " << SubDocKey::DebugSliceToString(key_parts[0]);
+    LOG(WARNING) << "KEY[1]  : " << hybrid_time.ToString();
+    LOG(WARNING) << "VALUE: " << key_value;
     handler->Put(key_parts, SliceParts(&key_value, 1));
 
     ++write_id;
@@ -537,6 +552,11 @@ Result<bool> ApplyIntentsContext::Entry(
         intent.doc_ht,
         decoded_value.body,
     }};
+    LOG(WARNING) << __PRETTY_FUNCTION__;
+    LOG(WARNING) << "KEY[0]  : " << SubDocKey::DebugSliceToString(key_parts[0]);
+    LOG(WARNING) << "KEY[1]  : " << SubDocKey::DebugSliceToString(key_parts[1]);
+    LOG(WARNING) << "VALUE[0]: " << value_parts[0];
+    LOG(WARNING) << "VALUE[1]: " << value_parts[1];
 
     // Useful when debugging transaction failure.
 #if defined(DUMP_APPLY)
