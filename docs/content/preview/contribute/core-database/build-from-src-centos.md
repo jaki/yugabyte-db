@@ -146,6 +146,12 @@ sudo yum install -y devtoolset-11 devtoolset-11-libatomic-devel
 Perform the following steps to build a release package:
 
 1. [Satisfy requirements for building yugabyted-ui](#yugabyted-ui).
+1. Install patchelf:
+
+   ```sh
+   sudo yum install -y patchelf
+   ```
+
 1. Run the `yb_release` script using the following command:
 
    ```sh
